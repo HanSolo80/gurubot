@@ -1,0 +1,13 @@
+{
+  "keywords": [
+    "guru"
+  ],
+  "name": "gurubot",
+  "description": "Bot of the Guru",
+  "repository": "https://github.com/HanSolo80/gurubot.git",
+  "env": {
+    "TOKEN_SLACK": {
+      "description": "Your Slack bot integration token (obtainable at https://my.slack.com/services/new/bot)"
+    }
+  }
+}
