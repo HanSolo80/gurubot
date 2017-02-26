@@ -2,16 +2,19 @@
 
 let Botkit = require('botkit');
 let assert = require('assert');
-let Quiz = require('./quiz');
+import Quiz from './quiz';
 
 class Gurubot {
+
+	controller: any;
+	bot: any;
+	quiz: Quiz;
 
 	/**
 	 * @param {String} slackToken Your Slack bot integration token (obtainable at https://my.slack.com/services/new/bot)
 	 */
 	constructor(slackToken) {
 		assert(slackToken, 'Slack Token is necessary obtain it at https://my.slack.com/services/new/bot and copy in configBot.json');
-
 		this.controller = Botkit.slackbot({
 			debug: false,
 		});

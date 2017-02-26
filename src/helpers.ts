@@ -2,9 +2,9 @@
 
 let request = require('request');
 
-class Helpers {
-	static getJSONFromUrl(url) {
-		return new Promise(function (resolve, reject) {
+export default class Helpers {
+	static getJSONFromUrl(url: string) {
+		return new Promise(function (resolve: Function, reject: Function) {
 			request.get({
 				url: url,
 				json: true,
@@ -23,7 +23,7 @@ class Helpers {
 		});
 	}
 
-	static printArray(array) {
+	static printArray(array: string[]) {
 		let out = '';
 		for (let i = 0; i < array.length; i++) {
 			out += array[i];
@@ -34,5 +34,3 @@ class Helpers {
 		return out;
 	}
 }
-
-module.exports = Helpers;
