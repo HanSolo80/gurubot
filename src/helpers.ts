@@ -1,9 +1,10 @@
 'use strict';
 
 let request = require('request');
+import {Question} from './externals';
 
-export default class Helpers {
-	static getJSONFromUrl(url: string) {
+class Helpers {
+	static getJSONFromUrl(url: string) : Promise<Question[]> {
 		return new Promise(function (resolve: Function, reject: Function) {
 			request.get({
 				url: url,
@@ -34,3 +35,5 @@ export default class Helpers {
 		return out;
 	}
 }
+
+export {Helpers};
