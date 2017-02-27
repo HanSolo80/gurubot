@@ -5,7 +5,7 @@ let Botkit = require('botkit');
 let assert = require('assert');
 let Quiz = require('./quiz');
 //import {Quiz} from './quiz';
-import {QuestionSimple, Member} from './externals';
+import { QuestionSimple, Member } from './externals';
 
 export class Gurubot {
 
@@ -31,22 +31,27 @@ export class Gurubot {
 		).startRTM();
 	}
 
-	run() : void {
+	run(): void {
 		let _this = this;
 
-		this.controller.on('hello', (bot) => {
-            bot.api.users.list({}, (err, data) => {
+		this.controller.on('hello', (bot, message) => {
+			bot.api.users.list({}, (err, data) => {
 				_this.users = data.members;
 			});
-        });
+			bot.api.channels.list({}, (err, data) => {
+				data.channels.forEach((channel) => {
+					bot.say({ text: 'Hello World. Guru is ready to give you knowlegde. Type *+commands* for command listing', channel: channel.id });
+				});
+			});
+		});
 
 		this.controller.hears('^\\+quiz\\s?(\\d*)$', 'ambient', (bot, message) => {
-			if (!_this.quiz) {
+			if (!_this.quiz || !_this.quiz.isRunning()) {
 				let numberToWin = 5;
-				if(message.match[1]) {
+				if (message.match[1]) {
 					numberToWin = parseInt(message.match[1]);
 				}
-				_this.quiz = new Quiz(numberToWin, _this._askNextQuestion);
+				_this.quiz = new Quiz(numberToWin, bot, message);
 				bot.reply(message, 'Quiz started with ' + numberToWin + ' answers to win.');
 				_this.quiz.run();
 			} else {
@@ -56,29 +61,24 @@ export class Gurubot {
 
 		this.controller.hears('\\+endquiz', 'ambient', (bot, message) => {
 			if (_this.quiz) {
-				_this.quiz = null;
 				_this.quiz.stop();
+				_this.quiz = null;
 				bot.reply(message, 'Quiz stopped');
 			} else {
 				bot.reply(message, 'No quiz running!');
 			}
 		});
 
-		this.controller.hears('commands', 'direct_message,direct_mention,mention', (bot, message) => {
-			bot.reply(message, '+quiz, +endquiz');
+		this.controller.hears('+commands', 'direct_message,direct_mention,mention', (bot, message) => {
+			bot.reply(message, 'Commands: +quiz, +endquiz');
 		});
 
 		this.controller.hears('', 'ambient', (bot, message) => {
-			if (_this.quiz && _this.quiz.isRunning() && _this.quiz.hasCurrentQuestion()) {
-				let currentQuestion = _this.quiz.getCurrentQuestion();
-				let correct = _this.quiz.postAnswer(_this.users[message.user].name, message.text);
-				if (correct) {
-					bot.reply(message, _this.users[message.user].name + ' got it correct: *' + currentQuestion.answer + '*');
-					let winner = _this.quiz.checkWinner();
-					if (winner) {
-						_this.quiz = null;
-						_this.quiz.stop();
-					}
+			if (_this.quiz) {
+				if (_this.quiz.isRunning()) {
+					_this.quiz.postAnswer(_this.users.find(user => user.id === message.user).name, message.text);
+				} else {
+					_this.quiz = null;
 				}
 			}
 		});
@@ -88,10 +88,14 @@ export class Gurubot {
 		});
 	}
 
-	_askNextQuestion(bot: any, message: any) : void {
-		this.quiz.askNextQuestion(bot, message).then((question: QuestionSimple) => {
-			
+	shutDown(callback: Function) {
+		var _this = this;
+		this.bot.api.channels.list({}, (err, data) => {
+			data.channels.forEach((channel) => {
+				_this.bot.say({ text: 'Guru is signing off. Until next time', channel: channel.id });
+			});
 		});
+		callback();
 	}
 }
 
