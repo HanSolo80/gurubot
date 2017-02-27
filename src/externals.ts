@@ -1,4 +1,4 @@
-export interface Question{
+export interface Question {
     category: string;
     type: string;
     difficulty: string;
@@ -8,7 +8,7 @@ export interface Question{
 }
 
 export interface QuestionSimple {
-    question : string;
+    question: string;
     answer: string;
 }
 
@@ -22,7 +22,7 @@ export interface Member {
     is_primary_owner: boolean;
     is_restricted: boolean;
     is_ultra_restricted: boolean;
-    name:string;
+    name: string;
     profile: Object;
     real_name: string;
     status: string;
@@ -30,4 +30,9 @@ export interface Member {
     tz: string;
     tz_label: string;
     tz_offset: number;
+}
+
+export interface Answer {
+    name: string;
+    answer: string;
 }

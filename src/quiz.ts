@@ -4,40 +4,92 @@ let nconf = require('nconf');
 let Entities = require('html-entities').AllHtmlEntities;
 let shuffle = require('knuth-shuffle').knuthShuffle;
 
-import {Question, QuestionSimple} from './externals';
-import {Helpers} from './helpers';
+import { Question, QuestionSimple, Answer } from './externals';
+import { Helpers } from './helpers';
+
+class AnswerWorker {
+
+	quiz: Quiz;
+	timer: NodeJS.Timer;
+	notified: boolean;
+
+	constructor(quiz: Quiz) {
+		this.quiz = quiz;
+		this.notified = false;
+	}
+
+	run(): void {
+		this.notifyNextQuestion();
+		this.timer = setInterval(() => {
+			this._doWork();
+		}, 250);
+	}
+
+	notifyNextQuestion(): void {
+		this.notified = true;
+
+	}
+
+	reset(): void {
+		clearInterval(this.timer);
+	}
+
+	_doWork(): void {
+		if (this.notified) {
+			this.notified = false;
+			this._triggerNextQuestion();
+		} else {
+			this._checkAnswer();
+		}
+	}
+
+	_triggerNextQuestion(): void {
+		this.quiz.resetQuestion();
+		this.quiz.askNextQuestion(this.quiz.bot, this.quiz.message);
+	}
+
+	_checkAnswer(): void {
+		if (this.quiz.isRunning && this.quiz._hasCurrentQuestion() && this.quiz.answerQueue.length > 0) {
+			let answer = this.quiz.answerQueue.shift();
+			this.quiz._checkAnswer(answer);
+		}
+	}
+}
 
 export class Quiz {
 
 	numberToWin: number;
 	answerTime: number;
-	questionTimer: Object;
+	questionTimer: NodeJS.Timer;
 	questionsAnswered: number;
 	questionCallback: Function;
 	participants: Object;
 	questions: Question[];
 	currentQuestion: string;
 	currentAnswer: string;
+	running: boolean;
 	entities: any;
 	bot: any;
-	answer: any;
+	message: any;
+	answerQueue: Answer[];
+	answerWorker: AnswerWorker;
 
-	constructor(answersToWin : number, callback: Function, bot, answer) {
+	constructor(answersToWin: number, bot, message) {
 		this.numberToWin = answersToWin;
-		this.answerTime = 15;
+		this.answerTime = 10000;
 		this.questionTimer = null;
 		this.questionsAnswered = 0;
-		this.questionCallback = callback;
 		this.participants = {};
 		this.questions = [];
 		this.currentQuestion = null;
 		this.currentAnswer = null;
 		this.entities = new Entities();
 		this.bot = bot;
-		this.answer = answer;
+		this.message = message;
+		this.running = false;
 	}
 
-	run() : void {
+	run(): void {
 		var _this = this;
 		_this._loadQuestions().then((responses) => {
 			responses.map((response) => {
@@ -46,21 +98,19 @@ export class Quiz {
 			_this.questions = shuffle(_this.questions);
 			console.log(_this.questions);
 			console.log('new data fetched');
-			_this.questionCallback();
+			this.answerWorker = new AnswerWorker(this);
+			this.answerWorker.run();
+			this.running = true;
 		});
 	}
 
-	isRunning() {
-		return this.questionsAnswered < this.numberToWin;
+	isRunning(): boolean {
+		return this.running;
 	}
 
-	askNextQuestion(bot, answer) : Promise<QuestionSimple> {
+	askNextQuestion(bot, answer): void {
 		var _this = this;
-		_this.questionTimer = setTimeout(() => {
-			_this.questionCallback();
-		}, _this.answerTime);
 		if (this.questions.length == 0) {
-			return new Promise((resolve: Function, reject: Function) => {
 			_this._loadQuestions().then((responses) => {
 				responses.map((response) => {
 					_this.questions = _this.questions.concat(response);
@@ -68,42 +118,40 @@ export class Quiz {
 				_this.questions = shuffle(_this.questions);
 				console.log(_this.questions);
 				console.log('new data fetched');
-				resolve(_this._fetchNextQuestion());
+				_this._postNextQuestion();
 			});
-		});
 		} else {
-			return new Promise((resolve) => {
-				resolve(this._fetchNextQuestion());
-			});
+			this._postNextQuestion();
 		}
 	}
 
-	getCurrentQuestion() : QuestionSimple {
+	_postNextQuestion() {
+		clearTimeout(this.questionTimer);
+		let next = this._fetchNextQuestion();
+		this._setQuestion(next);
+		this.questionTimer = setTimeout(() => {
+			if (this.isRunning()) {
+				this.bot.reply(this.message, "Answer was: " + this.getCurrentQuestion().answer);
+				setTimeout(() => {
+					this.answerWorker.notifyNextQuestion();
+				}, 1000);
+			}
+		}, this.answerTime);
+		this.bot.reply(this.message, this.entities.decode(next.question));
+	}
+
+	getCurrentQuestion(): QuestionSimple {
 		return {
 			question: this.entities.decode(this.currentQuestion),
 			answer: this.entities.decode(this.currentAnswer)
 		};
 	}
 
-	hasCurrentQuestion() : boolean {
-		return this.currentQuestion !== null && this.currentAnswer !== null;
+	postAnswer(user: string, answer: string): void {
+		this.answerQueue.push({ name: user, answer: answer });
 	}
 
-	postAnswer(user: string, answer: string) : boolean {
-		if (this._checkAnswer(answer)) {
-			if (!this.participants[user]) {
-				this.participants[user] = 0;
-			}
-			this.currentAnswer = null;
-			this.currentQuestion = null;
-			this.participants[user]++;
-			return true;
-		} else {
-			return false;
-		}
-	}
-
-	checkWinner() : string {
+	_checkWinner(): string {
 		for (let user in this.participants) {
 			if (this.participants.hasOwnProperty(user)) {
 				if (this.participants[user] === this.numberToWin) {
@@ -114,24 +162,25 @@ export class Quiz {
 		return null;
 	}
 
-	stop() : void {
-		
+	stop(): void {
+		this.answerWorker.reset();
+		this.running = false;
 	}
 
-	_loadQuestions() : Promise<any> {
-		let promises : Promise<Question[]>[] = [];
-		for(let question_url of nconf.get('question_urls')) {
+	_loadQuestions(): Promise<any> {
+		let promises: Promise<Question[]>[] = [];
+		for (let question_url of nconf.get('question_urls')) {
 			promises.push(Helpers.getJSONFromUrl(question_url));
 		}
 		return Promise.all(promises);
 	}
 
 
-	_fetchNextQuestion() : QuestionSimple {
+	_fetchNextQuestion(): Question {
 		let nextQuestion = this.questions[0];
 		this.questions.splice(0, 1);
-		if (nextQuestion.question.startsWith('Which of') ||
-			nextQuestion.question.startsWith('Which one') ||
+		if (nextQuestion.question.includes('Which of') ||
+			nextQuestion.question.includes('Which one') ||
 			nextQuestion.question.includes('following') ||
 			nextQuestion.question.includes('which of') ||
 			nextQuestion.question.includes('which one') ||
@@ -139,22 +188,49 @@ export class Quiz {
 			let answers = this._getShuffeledAnswers(nextQuestion.correct_answer, nextQuestion.incorrect_answers);
 			nextQuestion.question = nextQuestion.question + ' ( ' + answers + ' )';
 		}
+		this._setQuestion(nextQuestion);
+		return nextQuestion;
+	}
+
+	_setQuestion(nextQuestion: Question): void {
 		this.currentQuestion = nextQuestion.question;
 		this.currentAnswer = nextQuestion.correct_answer;
-		return {
-			question: this.entities.decode(this.currentQuestion),
-			answer: this.entities.decode(this.currentAnswer)
+	}
+
+	resetQuestion(): void {
+		this.currentQuestion = null;
+		this.currentAnswer = null;
+		this.answerQueue = [];
+	}
+
+	_hasCurrentQuestion(): boolean {
+		return this.currentQuestion !== null && this.currentAnswer !== null;
+	}
+
+	_checkAnswer(answer: Answer): boolean {
+		if (this.currentAnswer === null || this.currentQuestion === null) {
+			return;
+		}
+		if (answer.answer.toLowerCase() === this.currentAnswer.toLowerCase()) {
+			if (!this.participants[answer.name]) {
+				this.participants[answer.name] = 0;
+			}
+			this.participants[answer.name]++;
+			this.bot.reply(this.message, answer.name + " got it correct: *" + this.getCurrentQuestion().answer + '*');
+			let winner = this._checkWinner();
+			if (winner) {
+				this.bot.reply(this.message, "The winner is: " + winner);
+				this.stop();
+
+			} else {
+				setTimeout(() => {
+					this.answerWorker.notifyNextQuestion();
+				}, 1000);
+			}
 		};
 	}
 
-	_checkAnswer(answer: string) : boolean {
-		if(this.currentAnswer === null || this.currentQuestion === null) {
-			return false;
-		}
-		return answer.toLowerCase() === this.currentAnswer.toLowerCase();
-	}
-
-	_getShuffeledAnswers(correctAnswer: string, incorrectAnswers: string[]) : string {
+	_getShuffeledAnswers(correctAnswer: string, incorrectAnswers: string[]): string {
 		let answers = incorrectAnswers;
 		answers.push(correctAnswer);
 		return Helpers.printArray(shuffle(answers));
