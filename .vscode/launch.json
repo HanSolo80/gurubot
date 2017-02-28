@@ -24,7 +24,7 @@
 			"type": "node",
 			"request": "launch",
 			"name": "Launch Program",
-			"program": "${workspaceRoot}\\src\\main.js",
+			"program": "${workspaceRoot}\\dist\\src\\main.js",
 			"cwd": "${workspaceRoot}",
 			"outFiles": []
 		},

@@ -1,9 +1,10 @@
 /reports
 /.idea
+/.vscode
 logs
 *.log
 npm-debug.log*
 coverage
 node_modules
 /test/src
-/src/*.js
+dist
