@@ -1,15 +1,16 @@
 'use strict'
 
-let Gurubot = require('./gurubot');
+import * as Gurubot from './gurubot';
 let nconf = require('nconf');
 
 nconf.add('config', { type: 'file', file: './configBot.json' });
 
 try {
 	let tokenSlack = process.env.Gurubot || nconf.get('tokenslack');
-	this.gurubot = new Gurubot(tokenSlack).run();
+	let gurubot : Gurubot = new Gurubot(tokenSlack);
+	gurubot.run();
 	process.on('SIGTERM', function () {
-		this.gurubot.shutDown(function () {
+		gurubot.shutDown(function () {
 			process.exit(0);
 		});
 	});

@@ -3,11 +3,10 @@
 let nconf = require('nconf');
 let Botkit = require('botkit');
 let assert = require('assert');
-let Quiz = require('./quiz');
-//import {Quiz} from './quiz';
+import * as Quiz from './quiz';
 import { QuestionSimple, Member, Channel } from './externals';
 
-export class Gurubot {
+class Gurubot {
 
 	controller: any;
 	bot: any;
@@ -22,7 +21,7 @@ export class Gurubot {
 	constructor(slackToken) {
 		assert(slackToken, 'Slack Token is necessary obtain it at https://my.slack.com/services/new/bot and copy in configBot.json');
 		this.controller = Botkit.slackbot({
-			debug: false,
+			debug: false
 		});
 
 		this.bot = this.controller.spawn(
@@ -116,4 +115,8 @@ export class Gurubot {
 	}
 }
 
-module.exports = Gurubot;
+namespace Gurubot {
+	module.exports = Gurubot;
+}
+
+export = Gurubot;
