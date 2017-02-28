@@ -1,6 +1,7 @@
 /reports
 /.idea
 /.vscode
+.env
 logs
 *.log
 npm-debug.log*
