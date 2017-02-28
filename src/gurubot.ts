@@ -27,6 +27,7 @@ export class Gurubot {
 
 		this.bot = this.controller.spawn(
 			{
+				port: process.env.PORT,
 				token: slackToken
 			}
 		).startRTM();
