@@ -6,6 +6,7 @@
   "version": "0.0.1",
   "description": "Bot of the Guru",
   "author": "Christoph Kau",
+  "main": "dist/src/main.js",
   "engines": {
     "node": "5.0.0"
   },
@@ -17,8 +18,9 @@
     "url": "https://github.com/HanSolo80/gurubot/issues"
   },
   "scripts": {
-    "start": "node src/main.js",
-    "debug": "node src/main.js",
+    "postinstall": "tsc",
+    "start": "node dist/src/main.js",
+    "debug": "node dist/src/main.js",
     "test": "grunt test",
     "coverage": "grunt coverage"
   },
@@ -56,6 +58,7 @@
     "moment": "^2.12.0",
     "nconf": "^0.8.4",
     "restify": "^4.0.4",
+    "typescript": "^2.2.1",
     "typescript-require": "^0.2.9-1"
   }
 }
