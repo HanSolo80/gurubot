@@ -17,8 +17,8 @@
     "url": "https://github.com/HanSolo80/gurubot/issues"
   },
   "scripts": {
-    "start": "node dist/src/main.js",
-    "debug": "node dist/src/main.js",
+    "start": "node src/main.js",
+    "debug": "node src/main.js",
     "test": "grunt test",
     "coverage": "grunt coverage"
   },
