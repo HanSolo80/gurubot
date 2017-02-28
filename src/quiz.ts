@@ -61,7 +61,7 @@ class AnswerWorker {
 	}
 }
 
-export class Quiz {
+class Quiz {
 
 	numberToWin: number;
 	answerTime: number;
@@ -251,4 +251,8 @@ export class Quiz {
 	}
 }
 
-module.exports = Quiz;
+namespace Quiz {
+	module.exports = Quiz;
+}
+
+export = Quiz;

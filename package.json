@@ -18,7 +18,7 @@
     "url": "https://github.com/HanSolo80/gurubot/issues"
   },
   "scripts": {
-    "postinstall": "tsc || echo done.",
+    "postinstall": "tsc",
     "start": "node dist/src/main.js",
     "debug": "node dist/src/main.js",
     "test": "grunt test",
