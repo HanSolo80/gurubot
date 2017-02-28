@@ -11,23 +11,17 @@ class AnswerWorker {
 
 	quiz: Quiz;
 	timer: NodeJS.Timer;
-	notified: boolean;
+	solutionTime: number;
 
 	constructor(quiz: Quiz) {
 		this.quiz = quiz;
-		this.notified = false;
 	}
 
 	run(): void {
-		this.notifyNextQuestion();
+		this._triggerNextQuestion();
 		this.timer = setInterval(() => {
 			this._doWork();
 		}, 250);
-	}
-
-	notifyNextQuestion(): void {
-		this.notified = true;
-
 	}
 
 	reset(): void {
@@ -35,23 +29,34 @@ class AnswerWorker {
 	}
 
 	_doWork(): void {
-		if (this.notified) {
-			this.notified = false;
-			this._triggerNextQuestion();
-		} else {
-			this._checkAnswer();
+		if(this.quiz._hasCurrentQuestion()) {
+			if(new Date().getTime() > this.solutionTime) {
+				this.reset();
+				this.quiz.bot.reply(this.quiz.message, "Answer was: *" + this.quiz.getCurrentQuestion().answer + '*');
+				this.run();
+			} else {
+				this._checkAnswer();
+			}
 		}
+		
 	}
 
 	_triggerNextQuestion(): void {
 		this.quiz.resetQuestion();
-		this.quiz.askNextQuestion(this.quiz.bot, this.quiz.message);
+		setTimeout(() => {
+			this.solutionTime = new Date().getTime() + nconf.get('question_timeout');
+			this.quiz.askNextQuestion(this.quiz.bot, this.quiz.message);
+		}, 1000);
 	}
 
 	_checkAnswer(): void {
-		if (this.quiz.isRunning && this.quiz._hasCurrentQuestion() && this.quiz.answerQueue.length > 0) {
+		if (this.quiz.isRunning && this.quiz.answerQueue.length > 0) {
 			let answer = this.quiz.answerQueue.shift();
-			this.quiz._checkAnswer(answer);
+			let correct = this.quiz._checkAnswer(answer);
+			if(correct) {
+				this.reset();
+				this.run();
+			}
 		}
 	}
 }
@@ -60,7 +65,6 @@ export class Quiz {
 
 	numberToWin: number;
 	answerTime: number;
-	questionTimer: NodeJS.Timer;
 	questionsAnswered: number;
 	questionCallback: Function;
 	participants: Object;
@@ -76,8 +80,7 @@ export class Quiz {
 
 	constructor(answersToWin: number, bot, message) {
 		this.numberToWin = answersToWin;
-		this.answerTime = 10000;
-		this.questionTimer = null;
+		this.answerTime = nconf.get('question_timeout');
 		this.questionsAnswered = 0;
 		this.participants = {};
 		this.questions = [];
@@ -126,18 +129,19 @@ export class Quiz {
 	}
 
 	_postNextQuestion() {
-		clearTimeout(this.questionTimer);
 		let next = this._fetchNextQuestion();
 		this._setQuestion(next);
-		this.questionTimer = setTimeout(() => {
-			if (this.isRunning()) {
-				this.bot.reply(this.message, "Answer was: " + this.getCurrentQuestion().answer);
-				setTimeout(() => {
-					this.answerWorker.notifyNextQuestion();
-				}, 1000);
-			}
-		}, this.answerTime);
-		this.bot.reply(this.message, this.entities.decode(next.question));
+		let reply = {
+            'text': 'Next question: ',
+            'attachments': [
+                {
+                    'fallback': this.entities.decode(next.question),
+                    'text': this.entities.decode(next.question),
+                    'color': 'good'
+                }
+            ]
+        }
+        this.bot.reply(this.message, reply);
 	}
 
 	getCurrentQuestion(): QuestionSimple {
@@ -184,6 +188,8 @@ export class Quiz {
 			nextQuestion.question.includes('following') ||
 			nextQuestion.question.includes('which of') ||
 			nextQuestion.question.includes('which one') ||
+			nextQuestion.question.includes('which is not') ||
+			nextQuestion.question.includes('isn\'t') ||
 			nextQuestion.question.includes('NOT')) {
 			let answers = this._getShuffeledAnswers(nextQuestion.correct_answer, nextQuestion.incorrect_answers);
 			nextQuestion.question = nextQuestion.question + ' ( ' + answers + ' )';
@@ -209,9 +215,9 @@ export class Quiz {
 
 	_checkAnswer(answer: Answer): boolean {
 		if (this.currentAnswer === null || this.currentQuestion === null) {
-			return;
+			return false;
 		}
-		if (answer.answer.toLowerCase() === this.currentAnswer.toLowerCase()) {
+		if (this._decode(answer.answer).toLowerCase() === this._decode(this.currentAnswer).toLowerCase()) {
 			if (!this.participants[answer.name]) {
 				this.participants[answer.name] = 0;
 			}
@@ -221,13 +227,21 @@ export class Quiz {
 			if (winner) {
 				this.bot.reply(this.message, "The winner is: " + winner);
 				this.stop();
-
+				return false;
 			} else {
-				setTimeout(() => {
-					this.answerWorker.notifyNextQuestion();
-				}, 1000);
+				return true;
 			}
-		};
+		} else {
+			return false;
+		}
+	}
+
+	_decode(text: string) : string {
+		let decoded : string = this.entities.decode(text);
+		decoded = decoded.replace('&uuml;', 'ü');
+		decoded = decoded.replace('&ouml;', 'ö');
+		decoded = decoded.replace('&auml;', 'ä');
+		return decoded;
 	}
 
 	_getShuffeledAnswers(correctAnswer: string, incorrectAnswers: string[]): string {
