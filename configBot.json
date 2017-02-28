@@ -3,5 +3,8 @@
     "https://www.opentdb.com/api.php?amount=10&difficulty=easy",
     "https://www.opentdb.com/api.php?amount=30&difficulty=medium"
   ],
-  "question_timeout": 15000
+  "question_timeout": 15000,
+  "allowed_channels": {
+    "quiz" : ["quiz"]
+  }
 }

@@ -5,7 +5,7 @@ let Botkit = require('botkit');
 let assert = require('assert');
 let Quiz = require('./quiz');
 //import {Quiz} from './quiz';
-import { QuestionSimple, Member } from './externals';
+import { QuestionSimple, Member, Channel } from './externals';
 
 export class Gurubot {
 
@@ -14,6 +14,7 @@ export class Gurubot {
 	quiz: Quiz;
 	questionTimer: any;
 	users: Member[];
+	channels: Channel[];
 
 	/**
 	 * @param {String} slackToken Your Slack bot integration token (obtainable at https://my.slack.com/services/new/bot)
@@ -39,6 +40,7 @@ export class Gurubot {
 				_this.users = data.members;
 			});
 			bot.api.channels.list({}, (err, data) => {
+				_this.channels = data.channels;
 				data.channels.forEach((channel) => {
 					bot.say({ text: 'Hello World. Guru is ready to give you knowlegde. Type *+commands* for command listing', channel: channel.id });
 				});
@@ -46,6 +48,10 @@ export class Gurubot {
 		});
 
 		this.controller.hears('^\\+quiz\\s?(\\d*)$', 'ambient', (bot, message) => {
+			if (!this._isCommandAllowed('quiz', message)) {
+				bot.reply(message, '*Quiz not allowed in channel!*');
+				return;
+			}
 			if (!_this.quiz || !_this.quiz.isRunning()) {
 				let numberToWin = 5;
 				if (message.match[1]) {
@@ -60,6 +66,9 @@ export class Gurubot {
 		});
 
 		this.controller.hears('\\+endquiz', 'ambient', (bot, message) => {
+			if (!this._isCommandAllowed('quiz', message)) {
+				return;
+			}
 			if (_this.quiz) {
 				_this.quiz.stop();
 				_this.quiz = null;
@@ -69,14 +78,16 @@ export class Gurubot {
 			}
 		});
 
-		this.controller.hears('+commands', 'direct_message,direct_mention,mention', (bot, message) => {
-			bot.reply(message, 'Commands: +quiz, +endquiz');
+		this.controller.hears('\\+commands', 'ambient', (bot, message) => {
+			bot.reply(message, 'Commands: +quiz [numberToWin], +endquiz');
 		});
 
 		this.controller.hears('', 'ambient', (bot, message) => {
 			if (_this.quiz) {
 				if (_this.quiz.isRunning()) {
-					_this.quiz.postAnswer(_this.users.find(user => user.id === message.user).name, message.text);
+					if (message.channel === _this.quiz.message.channel) {
+						_this.quiz.postAnswer(_this.users.find(user => user.id === message.user).name, message.text);
+					}
 				} else {
 					_this.quiz = null;
 				}
@@ -96,6 +107,12 @@ export class Gurubot {
 			});
 		});
 		callback();
+	}
+
+	_isCommandAllowed(command: string, message: any): boolean {
+		let channelId = message.channel;
+		let channelName = this.channels.find(x => x.id === channelId).name;
+		return nconf.get('allowed_channels')[command].indexOf(channelName) !== -1;
 	}
 }
 
