@@ -77,6 +77,14 @@ class Gurubot {
 			}
 		});
 
+		this.controller.hears('\\+scorequiz', 'ambient', (bot, message) => {
+			if (_this.quiz) {
+				if (_this.quiz.isRunning()) {
+					bot.reply(message, _this.quiz.printStandings());
+				}
+			}
+		});
+
 		this.controller.hears('\\+commands', 'ambient', (bot, message) => {
 			bot.reply(message, 'Commands: +quiz [numberToWin], +endquiz');
 		});
@@ -100,10 +108,12 @@ class Gurubot {
 
 	shutDown(callback: Function) {
 		var _this = this;
-		this.bot.api.channels.list({}, (err, data) => {
-			data.channels.forEach((channel) => {
-				_this.bot.say({ text: 'Guru is signing off. Until next time', channel: channel.id });
-			});
+		if (_this.quiz && _this.quiz.isRunning()) {
+			_this.quiz.stop();
+			_this.quiz = null;
+		}
+		this.channels.forEach((channel) => {
+			_this.bot.say({ text: 'Guru is signing off. Until next time', channel: channel.id });
 		});
 		callback();
 	}

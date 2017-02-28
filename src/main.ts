@@ -9,7 +9,7 @@ try {
 	let tokenSlack = process.env.Gurubot || nconf.get('tokenslack');
 	let gurubot : Gurubot = new Gurubot(tokenSlack);
 	gurubot.run();
-	process.on('SIGTERM', function () {
+	process.on('SIGINT', function () {
 		gurubot.shutDown(function () {
 			process.exit(0);
 		});
