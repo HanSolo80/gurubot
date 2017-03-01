@@ -137,7 +137,7 @@ class Quiz {
 	_loadQuestions(): Promise<any> {
 		let promises: Promise<Question[]>[] = [];
 		for (let question_url of nconf.get('question_urls')) {
-			promises.push(Helpers.getJSONFromUrl(question_url));
+			promises.push(Helpers.getQuestionsFromURL(question_url));
 		}
 		return Promise.all(promises);
 	}

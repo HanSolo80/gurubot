@@ -4,6 +4,7 @@ let nconf = require('nconf');
 let Botkit = require('botkit');
 let assert = require('assert');
 import * as Quiz from './quiz';
+import { Helpers } from './helpers';
 import { QuestionSimple, Member, Channel } from './externals';
 
 class Gurubot {
@@ -14,26 +15,27 @@ class Gurubot {
 	questionTimer: any;
 	users: Member[];
 	channels: Channel[];
+	token: string;
 
 	/**
 	 * @param {String} slackToken Your Slack bot integration token (obtainable at https://my.slack.com/services/new/bot)
 	 */
 	constructor(slackToken) {
 		assert(slackToken, 'Slack Token is necessary obtain it at https://my.slack.com/services/new/bot and copy in configBot.json');
+		this.token = slackToken;
 		this.controller = Botkit.slackbot({
 			debug: false
 		});
 
 		this.bot = this.controller.spawn(
 			{
-				token: slackToken
+				token: this.token
 			}
 		).startRTM();
 	}
 
 	run(): void {
 		let _this = this;
-
 		this.controller.on('hello', (bot, message) => {
 			bot.api.users.list({}, (err, data) => {
 				_this.users = data.members;
@@ -88,8 +90,14 @@ class Gurubot {
 			}
 		});
 
+		this.controller.hears('\\+chuck', 'ambient', (bot, message) => {
+			Helpers.getJSONFromUrl(nconf.get('norrisapi_url')).then((fact) => {
+				bot.reply(message, fact.value.joke);
+			});
+		});
+
 		this.controller.hears('\\+commands', 'ambient', (bot, message) => {
-			bot.reply(message, 'Commands: +quiz [numberToWin], +endquiz, +scorequiz');
+			bot.reply(message, 'Commands: (+) quiz [numberToWin], endquiz, scorequiz, chuck');
 		});
 
 		this.controller.hears('', 'ambient', (bot, message) => {
@@ -109,16 +117,20 @@ class Gurubot {
 		});
 	}
 
-	shutDown(callback: Function) {
-		var _this = this;
-		if (_this.quiz && _this.quiz.isRunning()) {
-			_this.quiz.stop();
-			_this.quiz = null;
-		}
-		this.channels.forEach((channel) => {
-			_this.bot.say({ text: 'Guru is signing off. Until next time', channel: channel.id });
+	shutDown(): Promise<any> {
+		return new Promise(function (resolve: Function, reject: Function) {
+			var _this = this;
+			if (_this.quiz && _this.quiz.isRunning()) {
+				_this.quiz.stop();
+				_this.quiz = null;
+			}
+			this.channels.forEach((channel) => {
+				_this.bot.say({ text: 'Guru is signing off. Until next time', channel: channel.id });
+			});
+			setTimeout(function() {
+				resolve();
+			}, 2000);
 		});
-		callback();
 	}
 
 	_isCommandAllowed(command: string, message: any): boolean {

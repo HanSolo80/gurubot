@@ -1,4 +1,5 @@
 {
+  "norrisapi_url" : "http://api.icndb.com/jokes/random/",
   "question_urls": [
     "https://www.opentdb.com/api.php?amount=10&difficulty=easy",
     "https://www.opentdb.com/api.php?amount=30&difficulty=medium"
