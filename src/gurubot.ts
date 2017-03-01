@@ -78,6 +78,9 @@ class Gurubot {
 		});
 
 		this.controller.hears('\\+scorequiz', 'ambient', (bot, message) => {
+			if (!this._isCommandAllowed('quiz', message)) {
+				return;
+			}
 			if (_this.quiz) {
 				if (_this.quiz.isRunning()) {
 					bot.reply(message, _this.quiz.printStandings());
@@ -86,7 +89,7 @@ class Gurubot {
 		});
 
 		this.controller.hears('\\+commands', 'ambient', (bot, message) => {
-			bot.reply(message, 'Commands: +quiz [numberToWin], +endquiz');
+			bot.reply(message, 'Commands: +quiz [numberToWin], +endquiz, +scorequiz');
 		});
 
 		this.controller.hears('', 'ambient', (bot, message) => {
