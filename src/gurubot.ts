@@ -118,16 +118,16 @@ class Gurubot {
 	}
 
 	shutDown(): Promise<any> {
+		var _this = this;
 		return new Promise(function (resolve: Function, reject: Function) {
-			var _this = this;
 			if (_this.quiz && _this.quiz.isRunning()) {
 				_this.quiz.stop();
 				_this.quiz = null;
 			}
-			this.channels.forEach((channel) => {
+			_this.channels.forEach((channel) => {
 				_this.bot.say({ text: 'Guru is signing off. Until next time', channel: channel.id });
 			});
-			setTimeout(function() {
+			setTimeout(function () {
 				resolve();
 			}, 2000);
 		});
