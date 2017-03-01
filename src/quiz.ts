@@ -28,11 +28,7 @@ class Quiz {
 		this.numberToWin = answersToWin;
 		this.answerTime = nconf.get('question_timeout');
 		this.questionsAnswered = 0;
-		this.participants = {
-			'player1': 25,
-			'player2': 8,
-			'player3': 19
-		};
+		this.participants = {};
 		this.questions = [];
 		this.currentQuestion = null;
 		this.currentAnswer = null;
