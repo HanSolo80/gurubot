@@ -1,6 +1,8 @@
 /reports
 /.idea
 /.vscode
+/.settings
+/.project
 .env
 logs
 *.log
