@@ -10,7 +10,7 @@ try {
 	let gurubot : Gurubot = new Gurubot(tokenSlack);
 	gurubot.run();
 	process.on('SIGINT', function () {
-		gurubot.shutDown(function () {
+		gurubot.shutDown().then(function () {
 			process.exit(0);
 		});
 	});

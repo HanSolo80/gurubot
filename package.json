@@ -6,7 +6,7 @@
   "version": "0.0.1",
   "description": "Bot of the Guru",
   "author": "Christoph Kau",
-  "main": "dist/src/main.js",
+  "main": "dist/main.js",
   "engines": {
     "node": "5.0.0"
   },
@@ -19,8 +19,8 @@
   },
   "scripts": {
     "postinstall": "tsc",
-    "start": "node dist/src/main.js",
-    "debug": "node dist/src/main.js",
+    "start": "node dist/main.js",
+    "debug": "node dist/main.js",
     "test": "grunt test",
     "coverage": "grunt coverage"
   },
