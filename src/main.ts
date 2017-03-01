@@ -7,7 +7,7 @@ nconf.add('config', { type: 'file', file: './configBot.json' });
 
 try {
 	let tokenSlack = process.env.Gurubot || nconf.get('tokenslack');
-	let gurubot : Gurubot = new Gurubot(tokenSlack);
+	let gurubot: Gurubot = new Gurubot(tokenSlack);
 	gurubot.run();
 	process.on('SIGINT', function () {
 		gurubot.shutDown().then(function () {

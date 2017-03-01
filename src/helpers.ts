@@ -1,15 +1,15 @@
 'use strict';
 
 let request = require('request');
-import {Question} from './externals';
+import { Question } from './externals';
 
 class Helpers {
-	static getJSONFromUrl(url: string) : Promise<any> {
+	static getJSONFromUrl(url: string): Promise<any> {
 		return new Promise(function (resolve: Function, reject: Function) {
 			request.get({
 				url: url,
 				json: true,
-				headers: {'User-Agent': 'request'}
+				headers: { 'User-Agent': 'request' }
 			}, (err, res, data) => {
 				if (err) {
 					console.log('Error:', err);
@@ -24,7 +24,7 @@ class Helpers {
 		});
 	}
 
-	static getQuestionsFromURL(url: string) : Promise<Question[]> {
+	static getQuestionsFromURL(url: string): Promise<Question[]> {
 		return new Promise(function (resolve: Function, reject: Function) {
 			Helpers.getJSONFromUrl(url).then((data) => {
 				resolve(data.results);
@@ -36,7 +36,7 @@ class Helpers {
 		let out = '';
 		for (let i = 0; i < array.length; i++) {
 			out += array[i];
-			if(i < array.length - 1) {
+			if (i < array.length - 1) {
 				out += ', ';
 			}
 		}
@@ -44,4 +44,4 @@ class Helpers {
 	}
 }
 
-export {Helpers};
+export { Helpers };
