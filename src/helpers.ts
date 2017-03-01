@@ -1,10 +1,11 @@
 'use strict';
 
 let request = require('request');
+import {Question} from './externals';
 
 class Helpers {
-	static getJSONFromUrl(url) {
-		return new Promise(function (resolve, reject) {
+	static getJSONFromUrl(url: string) : Promise<any> {
+		return new Promise(function (resolve: Function, reject: Function) {
 			request.get({
 				url: url,
 				json: true,
@@ -17,13 +18,21 @@ class Helpers {
 					console.log('Status:', res.statusCode);
 					reject('Status:', res.statusCode);
 				} else {
-					resolve(data.results);
+					resolve(data);
 				}
 			});
 		});
 	}
 
-	static printArray(array) {
+	static getQuestionsFromURL(url: string) : Promise<Question[]> {
+		return new Promise(function (resolve: Function, reject: Function) {
+			Helpers.getJSONFromUrl(url).then((data) => {
+				resolve(data.results);
+			});
+		});
+	}
+
+	static printArray(array: string[]) {
 		let out = '';
 		for (let i = 0; i < array.length; i++) {
 			out += array[i];
@@ -35,4 +44,4 @@ class Helpers {
 	}
 }
 
-module.exports = Helpers;
+export {Helpers};

@@ -1,3 +1,11 @@
 {
-  "question_url": "https://opentdb.com/api.php?type=multiple&amount=40"
+  "norrisapi_url" : "http://api.icndb.com/jokes/random/",
+  "question_urls": [
+    "https://www.opentdb.com/api.php?amount=10&difficulty=easy",
+    "https://www.opentdb.com/api.php?amount=30&difficulty=medium"
+  ],
+  "question_timeout": 15000,
+  "allowed_channels": {
+    "quiz" : ["quiz"]
+  }
 }

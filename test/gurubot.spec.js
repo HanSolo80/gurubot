@@ -1,7 +1,7 @@
 /*global describe, it, beforeEach, afterEach */
 'use strict';
 
-var Gurubot = require('../src/Gurubot');
+var Gurubot = require('../src/gurubot');
 var expect = require('chai').expect;
 var sinon = require('sinon');
 var Bot = require('slackbots');
