@@ -68,7 +68,7 @@ class Quiz {
 		var _this = this;
 		if (this.questions.length == 0) {
 			_this._loadQuestions().then((responses) => {
-				_this.questions =  _this._processQuestionResponses(responses);
+				_this.questions = _this._processQuestionResponses(responses);
 				_this._postNextQuestion();
 			});
 		} else {
@@ -196,7 +196,9 @@ class Quiz {
 				this.stop();
 				setTimeout(() => {
 					this.bot.reply(this.message, "The winner is: " + winner);
-					this.bot.reply(this.message, "Final standing:\n" + this.printStandings());
+					setTimeout(() => {
+						this.bot.reply(this.message, "Final standing:\n" + this.printStandings());
+					}, 1000);
 				}, 1500);
 				return false;
 			} else {
