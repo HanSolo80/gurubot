@@ -41,16 +41,25 @@ class Quiz {
 	run(): void {
 		var _this = this;
 		_this._loadQuestions().then((responses) => {
-			responses.map((response) => {
-				_this.questions = _this.questions.concat(response);
-			});
-			_this.questions = shuffle(_this.questions);
-			console.log(_this.questions);
-			console.log('new data fetched');
+			_this.questions = _this._processQuestionResponses(responses);
 			this.answerWorker = new AnswerWorker(this);
 			this.answerWorker.run();
 			this.running = true;
 		});
+	}
+
+	_processQuestionResponses(responses: Question[][]): Question[] {
+		let result: Question[] = [];
+		responses.map((response) => {
+			result = result.concat(response);
+		});
+		result = shuffle(result);
+		result = result.filter((question) => {
+			return question.correct_answer.toLowerCase() !== 'false' && question.correct_answer.toLowerCase() !== 'true';
+		});
+		console.debug(result);
+		console.debug('new data fetched');
+		return result;
 	}
 
 	isRunning(): boolean {
@@ -61,12 +70,7 @@ class Quiz {
 		var _this = this;
 		if (this.questions.length == 0) {
 			_this._loadQuestions().then((responses) => {
-				responses.map((response) => {
-					_this.questions = _this.questions.concat(response);
-				});
-				_this.questions = shuffle(_this.questions);
-				console.log(_this.questions);
-				console.log('new data fetched');
+				_this.questions =  _this._processQuestionResponses(responses);
 				_this._postNextQuestion();
 			});
 		} else {
