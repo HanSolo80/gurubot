@@ -57,8 +57,6 @@ class Quiz {
 		result = result.filter((question) => {
 			return question.correct_answer.toLowerCase() !== 'false' && question.correct_answer.toLowerCase() !== 'true';
 		});
-		console.debug(result);
-		console.debug('new data fetched');
 		return result;
 	}
 
