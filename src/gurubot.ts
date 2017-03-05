@@ -43,7 +43,7 @@ class Gurubot {
 			bot.api.channels.list({}, (err, data) => {
 				_this.channels = data.channels;
 				data.channels.forEach((channel) => {
-					bot.say({ text: 'Hello World. Guru is ready to give you knowlegde. Type *+commands* for command listing', channel: channel.id });
+					//bot.say({ text: 'Hello World. Guru is ready to give you knowlegde. Type *+commands* for command listing', channel: channel.id });
 				});
 			});
 		});
@@ -111,10 +111,6 @@ class Gurubot {
 				}
 			}
 		});
-
-		this.controller.on('bot_channel_join', (bot, message) => {
-			bot.reply(message, 'Hello World');
-		});
 	}
 
 	shutDown(): Promise<any> {
@@ -125,7 +121,7 @@ class Gurubot {
 				_this.quiz = null;
 			}
 			_this.channels.forEach((channel) => {
-				_this.bot.say({ text: 'Guru is signing off. Until next time', channel: channel.id });
+				//_this.bot.say({ text: 'Guru is signing off. Until next time', channel: channel.id });
 			});
 			setTimeout(function () {
 				resolve();
