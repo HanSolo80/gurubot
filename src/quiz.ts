@@ -6,6 +6,7 @@ let shuffle = require('knuth-shuffle').knuthShuffle;
 
 import { Question, QuestionSimple, Answer } from './externals';
 import { Helpers } from './helpers';
+import * as TriviaDBProvider from './triviadbprovider';
 
 class Quiz {
 
@@ -23,6 +24,7 @@ class Quiz {
 	message: any;
 	answerQueue: Answer[];
 	answerWorker: AnswerWorker;
+	triviaProvider: TriviaDBProvider;
 
 	constructor(answersToWin: number, bot, message) {
 		this.numberToWin = answersToWin;
@@ -36,29 +38,20 @@ class Quiz {
 		this.bot = bot;
 		this.message = message;
 		this.running = false;
+		this.triviaProvider = new TriviaDBProvider();
 	}
 
 	run(): void {
 		var _this = this;
-		_this._loadQuestions().then((responses) => {
-			_this.questions = _this._processQuestionResponses(responses);
+		_this.triviaProvider.fetchQuestions().then((questions) => {
+			_this.questions = questions;
 			this.answerWorker = new AnswerWorker(this);
 			this.answerWorker.run();
 			this.running = true;
 		});
 	}
 
-	_processQuestionResponses(responses: Question[][]): Question[] {
-		let result: Question[] = [];
-		responses.map((response) => {
-			result = result.concat(response);
-		});
-		result = shuffle(result);
-		result = result.filter((question) => {
-			return question.correct_answer.toLowerCase() !== 'false' && question.correct_answer.toLowerCase() !== 'true';
-		});
-		return result;
-	}
+	
 
 	isRunning(): boolean {
 		return this.running;
@@ -67,8 +60,8 @@ class Quiz {
 	askNextQuestion(bot, answer): void {
 		var _this = this;
 		if (this.questions.length == 0) {
-			_this._loadQuestions().then((responses) => {
-				_this.questions = _this._processQuestionResponses(responses);
+			_this.triviaProvider.fetchQuestions().then((questions) => {
+				_this.questions = questions;
 				_this._postNextQuestion();
 			});
 		} else {
@@ -135,15 +128,6 @@ class Quiz {
 		this.answerWorker.reset();
 		this.running = false;
 	}
-
-	_loadQuestions(): Promise<any> {
-		let promises: Promise<Question[]>[] = [];
-		for (let question_url of nconf.get('question_urls')) {
-			promises.push(Helpers.getQuestionsFromURL(question_url));
-		}
-		return Promise.all(promises);
-	}
-
 
 	_fetchNextQuestion(): Question {
 		let nextQuestion = this.questions[0];
