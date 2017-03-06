@@ -25,7 +25,9 @@ class MariaDBProvider implements QuestionProvider {
             }
         }
         if(nconf.get('socketpath')) {
-            connectOptions['socketPath'] = nconf.get('socketpath');
+            connectOptions['dialectOptions'] = {
+                socketPath: nconf.get('socketpath')
+            };
         }
         this.sequelize = new Sequelize(nconf.get('dburi'), connectOptions);
         this.Category = this.sequelize.define('category',
