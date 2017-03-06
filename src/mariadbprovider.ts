@@ -12,20 +12,22 @@ class MariaDBProvider implements QuestionProvider {
     sequelize;
     Category;
     Question;
-    numberOfQuestions : Number;
+    numberOfQuestions: Number;
 
     constructor(numberOfQuestions?: Number) {
         this.numberOfQuestions = numberOfQuestions || 50;
-        this.sequelize = new Sequelize(nconf.get('dburi'),
-            {
-                dialect: 'mariadb',
-                pool: {
-                    max: 5,
-                    min: 0,
-                    idle: 10000
-                }
+        let connectOptions = {
+            dialect: 'mariadb',
+            pool: {
+                max: 5,
+                min: 0,
+                idle: 10000
             }
-        );
+        }
+        if(nconf.get('socketpath')) {
+            connectOptions['socketPath'] = nconf.get('socketpath');
+        }
+        this.sequelize = new Sequelize(nconf.get('dburi'), connectOptions);
         this.Category = this.sequelize.define('category',
             {
                 name: {
