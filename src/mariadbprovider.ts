@@ -12,8 +12,10 @@ class MariaDBProvider implements QuestionProvider {
     sequelize;
     Category;
     Question;
+    numberOfQuestions : Number;
 
-    constructor() {
+    constructor(numberOfQuestions?: Number) {
+        this.numberOfQuestions = numberOfQuestions || 50;
         this.sequelize = new Sequelize(nconf.get('dburi'),
             {
                 dialect: 'mariadb',
@@ -66,11 +68,11 @@ class MariaDBProvider implements QuestionProvider {
     }
 
     fetchQuestions(): Promise<Question[]> {
-        var _this = this;
+        let _this = this;
         return new Promise(function (resolve: Function, reject: Function) {
             let result: Question[] = [];
             _this.Question.findAll({
-                limit: 40,
+                limit: _this.numberOfQuestions,
                 order: [
                     Sequelize.fn('RAND'),
                 ]

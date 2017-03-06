@@ -9,9 +9,15 @@ import { Helpers } from './helpers';
 
 class TriviaDBProvider implements QuestionProvider {
 
+    numberOfQuestions : Number;
+
+    constructor(numberOfQuestions?: Number) {
+        this.numberOfQuestions = numberOfQuestions || 50;
+    }
+
     fetchQuestions(): Promise<Question[]> {
-        var _this = this;
-        return new Promise(function (resolve: Function, reject: Function) {
+        let _this = this;
+        return new Promise(function (resolve: Function) {
             _this._loadQuestions().then((responses) => {
                 resolve(_this._processQuestionResponses(responses));
             });
@@ -31,14 +37,9 @@ class TriviaDBProvider implements QuestionProvider {
         responses.map((response) => {
             result = result.concat(response);
         });
-        result = shuffle(result);
-        result = result.filter((question) => {
-            return question.correct_answer.toLowerCase() !== 'false' && question.correct_answer.toLowerCase() !== 'true';
-        });
         return result;
     }
 }
-
 namespace TriviaDBProvider {
     module.exports = TriviaDBProvider;
 }

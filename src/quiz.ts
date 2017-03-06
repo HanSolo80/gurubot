@@ -6,7 +6,9 @@ let shuffle = require('knuth-shuffle').knuthShuffle;
 
 import { Question, QuestionSimple, Answer } from './externals';
 import { Helpers } from './helpers';
+import * as QuestionProvider from './questionprovider';
 import * as TriviaDBProvider from './triviadbprovider';
+import * as MariaDBProvider from './mariadbprovider';
 
 class Quiz {
 
@@ -24,7 +26,7 @@ class Quiz {
 	message: any;
 	answerQueue: Answer[];
 	answerWorker: AnswerWorker;
-	triviaProvider: TriviaDBProvider;
+	questionProviders: QuestionProvider[];
 
 	constructor(answersToWin: number, bot, message) {
 		this.numberToWin = answersToWin;
@@ -38,12 +40,14 @@ class Quiz {
 		this.bot = bot;
 		this.message = message;
 		this.running = false;
-		this.triviaProvider = new TriviaDBProvider();
+		this.questionProviders = [];
+		this.questionProviders.push(new TriviaDBProvider());
+		this.questionProviders.push(new MariaDBProvider(40));
 	}
 
 	run(): void {
 		var _this = this;
-		_this.triviaProvider.fetchQuestions().then((questions) => {
+		_this._fetchQuestionsFromProviders(_this.questionProviders).then((questions) => {
 			_this.questions = questions;
 			this.answerWorker = new AnswerWorker(this);
 			this.answerWorker.run();
@@ -51,7 +55,7 @@ class Quiz {
 		});
 	}
 
-	
+
 
 	isRunning(): boolean {
 		return this.running;
@@ -60,13 +64,29 @@ class Quiz {
 	askNextQuestion(bot, answer): void {
 		var _this = this;
 		if (this.questions.length == 0) {
-			_this.triviaProvider.fetchQuestions().then((questions) => {
+			_this._fetchQuestionsFromProviders(_this.questionProviders).then((questions) => {
 				_this.questions = questions;
 				_this._postNextQuestion();
 			});
 		} else {
 			this._postNextQuestion();
 		}
+	}
+
+	_fetchQuestionsFromProviders(providers: QuestionProvider[]): Promise<Question[]> {
+		return new Promise(function (resolve: Function) {
+			let result: Question[] = [];
+			let promises: Promise<Question[]>[] = [];
+			providers.forEach((provider) => {
+				promises.push(provider.fetchQuestions());
+			});
+			Promise.all(promises).then((responses) => {
+				responses.map((response) => {
+					result = result.concat(response);
+				});
+				resolve(result);
+			});
+		});
 	}
 
 	_postNextQuestion() {

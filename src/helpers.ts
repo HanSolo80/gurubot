@@ -25,7 +25,7 @@ class Helpers {
 	}
 
 	static getQuestionsFromURL(url: string): Promise<Question[]> {
-		return new Promise(function (resolve: Function, reject: Function) {
+		return new Promise(function (resolve: Function) {
 			Helpers.getJSONFromUrl(url).then((data) => {
 				resolve(data.results);
 			});
