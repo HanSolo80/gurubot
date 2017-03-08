@@ -1,12 +1,12 @@
 'use strict';
 
-import {Question} from "./externals";
+import { Question, Difficulty } from "./externals";
 
 interface QuestionProvider {
-	fetchQuestions(): Promise<Question[]> ;
+	fetchQuestions(): Promise<Question[]>;
 }
 declare let QuestionProvider: {
-	new(numberOfQuestions: Number): QuestionProvider;
+	new (numberOfQuestions?: number, difficulty?: Difficulty): QuestionProvider;
 };
 
 export = QuestionProvider;

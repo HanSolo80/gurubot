@@ -4,7 +4,7 @@ let nconf = require('nconf');
 let Entities = require('html-entities').AllHtmlEntities;
 let shuffle = require('knuth-shuffle').knuthShuffle;
 
-import { Question, QuestionSimple, Answer } from './externals';
+import { Question, QuestionSimple, Answer, Difficulty } from './externals';
 import { Helpers } from './helpers';
 import * as QuestionProvider from './questionprovider';
 import * as TriviaDBProvider from './triviadbprovider';
@@ -28,7 +28,7 @@ class Quiz {
 	answerWorker: AnswerWorker;
 	questionProviders: QuestionProvider[];
 
-	constructor(answersToWin: number, bot, message) {
+	constructor(answersToWin: number, bot, message, difficulty?: Difficulty) {
 		this.numberToWin = answersToWin;
 		this.answerTime = nconf.get('question_timeout');
 		this.questionsAnswered = 0;
@@ -41,8 +41,8 @@ class Quiz {
 		this.message = message;
 		this.running = false;
 		this.questionProviders = [];
-		this.questionProviders.push(new TriviaDBProvider());
-		this.questionProviders.push(new MariaDBProvider(40));
+		this.questionProviders.push(new TriviaDBProvider(null, difficulty));
+		this.questionProviders.push(new MariaDBProvider(40, difficulty));
 	}
 
 	run(): void {

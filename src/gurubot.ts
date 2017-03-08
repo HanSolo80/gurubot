@@ -5,7 +5,7 @@ let Botkit = require('botkit');
 let assert = require('assert');
 import * as Quiz from './quiz';
 import { Helpers } from './helpers';
-import { QuestionSimple, Member, Channel } from './externals';
+import { QuestionSimple, Member, Channel, Difficulty } from './externals';
 
 class Gurubot {
 
@@ -21,6 +21,7 @@ class Gurubot {
 	 * @param {String} slackToken Your Slack bot integration token (obtainable at https://my.slack.com/services/new/bot)
 	 */
 	constructor(slackToken) {
+		var _this = this;
 		assert(slackToken, 'Slack Token is necessary obtain it at https://my.slack.com/services/new/bot and copy in configBot.json');
 		this.token = slackToken;
 		this.controller = Botkit.slackbot({
@@ -33,16 +34,17 @@ class Gurubot {
 			}
 		)
 		this.controller.on('rtm_close', function (bot, err) {
-			this._startRTM();
+			_this._startRTM();
 		});
 		this._startRTM();
 	}
 
 	_startRTM() {
+		var _this = this;
 		this.bot.startRTM(function (err, bot, payload) {
 			if (err) {
 				console.log('Failed to start RTM')
-				return setTimeout(this._startRTM, 60000);
+				return setTimeout(_this._startRTM, 60000);
 			}
 			console.log("RTM started!");
 		});
@@ -62,17 +64,33 @@ class Gurubot {
 			});
 		});
 
-		this.controller.hears('^\\+quiz\\s?(\\d*)$', 'ambient', (bot, message) => {
+		this.controller.hears('^\\+quiz\\s*(\\d*)\\s*(\\w*)\\s*$', 'ambient', (bot, message) => {
 			if (!this._isCommandAllowed('quiz', message)) {
 				bot.reply(message, '*Quiz not allowed in channel!*');
 				return;
 			}
 			if (!_this.quiz || !_this.quiz.isRunning()) {
 				let numberToWin = 5;
+				let difficulty = null;
 				if (message.match[1]) {
 					numberToWin = parseInt(message.match[1]);
 				}
-				_this.quiz = new Quiz(numberToWin, bot, message);
+				if (message.match[2]) {
+					switch (message.match[2].toLowerCase()) {
+						case 'easy':
+							difficulty = Difficulty.EASY;
+							break;
+
+						case 'medium':
+							difficulty = Difficulty.MEDIUM;
+							break;
+
+						case 'hard':
+							difficulty = Difficulty.HARD
+							break;
+					}
+				}
+				_this.quiz = new Quiz(numberToWin, bot, message, difficulty);
 				bot.reply(message, 'Quiz started with ' + numberToWin + ' answers to win.');
 				_this.quiz.run();
 			} else {
@@ -111,7 +129,7 @@ class Gurubot {
 		});
 
 		this.controller.hears('\\+commands', 'ambient', (bot, message) => {
-			bot.reply(message, 'Commands: (+) quiz [numberToWin], endquiz, scorequiz, chuck');
+			bot.reply(message, 'Commands: (+) quiz [numberToWin] [difficulty], endquiz, scorequiz, chuck');
 		});
 
 		this.controller.hears('', 'ambient', (bot, message) => {

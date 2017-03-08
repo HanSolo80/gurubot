@@ -52,3 +52,9 @@ export interface Answer {
     name: string;
     answer: string;
 }
+
+export enum Difficulty {
+    EASY = 1,
+    MEDIUM = 2,
+    HARD = 3,
+}

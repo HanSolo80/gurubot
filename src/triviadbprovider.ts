@@ -1,18 +1,21 @@
 'use strict';
 
 let nconf = require('nconf');
+let sprintf = require('sprintf-js').sprintf;
 let shuffle = require('knuth-shuffle').knuthShuffle;
 
 import * as QuestionProvider from './questionprovider';
-import { Question } from './externals';
+import { Question, Difficulty } from './externals';
 import { Helpers } from './helpers';
 
 class TriviaDBProvider implements QuestionProvider {
 
-    numberOfQuestions : Number;
+    numberOfQuestions: number;
+    difficulty: Difficulty;
 
-    constructor(numberOfQuestions?: Number) {
+    constructor(numberOfQuestions?: number, difficulty?: Difficulty) {
         this.numberOfQuestions = numberOfQuestions || 50;
+        this.difficulty = difficulty;
     }
 
     fetchQuestions(): Promise<Question[]> {
@@ -25,11 +28,18 @@ class TriviaDBProvider implements QuestionProvider {
     }
 
     _loadQuestions(): Promise<any> {
-        let promises: Promise<Question[]>[] = [];
-        for (let question_url of nconf.get('question_urls')) {
-            promises.push(Helpers.getQuestionsFromURL(question_url));
+        if (this.difficulty) {
+            return Helpers.getQuestionsFromURL(sprintf(nconf.get('question_url'), this.numberOfQuestions, Difficulty[this.difficulty].toLowerCase()));
+        } else {
+            let promises: Promise<Question[]>[] = [];
+            let questionsEasy = Math.round(this.numberOfQuestions * 1 / 5);
+            let questionsMedium = Math.round(this.numberOfQuestions * 3 / 5);
+            let questionsHard = Math.round(this.numberOfQuestions * 1 / 5);
+            promises.push(Helpers.getQuestionsFromURL(sprintf(nconf.get('question_url'), questionsEasy, Difficulty[Difficulty.EASY].toLowerCase())));
+            promises.push(Helpers.getQuestionsFromURL(sprintf(nconf.get('question_url'), questionsMedium, Difficulty[Difficulty.MEDIUM].toLowerCase())));
+            promises.push(Helpers.getQuestionsFromURL(sprintf(nconf.get('question_url'), questionsHard, Difficulty[Difficulty.HARD].toLowerCase())));
+            return Promise.all(promises);
         }
-        return Promise.all(promises);
     }
 
     _processQuestionResponses(responses: Question[][]): Question[] {

@@ -5,17 +5,19 @@ let shuffle = require('knuth-shuffle').knuthShuffle;
 let Sequelize = require('sequelize');
 
 import * as QuestionProvider from './questionprovider';
-import { Question } from './externals';
+import { Question, Difficulty } from './externals';
 
 class MariaDBProvider implements QuestionProvider {
 
     sequelize;
     Category;
     Question;
-    numberOfQuestions: Number;
+    numberOfQuestions: number;
+    difficulty: Difficulty;
 
-    constructor(numberOfQuestions?: Number) {
+    constructor(numberOfQuestions?: number, difficulty?: Difficulty) {
         this.numberOfQuestions = numberOfQuestions || 50;
+        this.difficulty = difficulty;
         let connectOptions = {
             dialect: 'mariadb',
             pool: {
@@ -24,7 +26,7 @@ class MariaDBProvider implements QuestionProvider {
                 idle: 10000
             }
         }
-        if(nconf.get('socketpath')) {
+        if (nconf.get('socketpath')) {
             connectOptions['dialectOptions'] = {
                 socketPath: nconf.get('socketpath')
             };
@@ -75,12 +77,60 @@ class MariaDBProvider implements QuestionProvider {
         let _this = this;
         return new Promise(function (resolve: Function, reject: Function) {
             let result: Question[] = [];
-            _this.Question.findAll({
-                limit: _this.numberOfQuestions,
-                order: [
-                    Sequelize.fn('RAND'),
-                ]
-            }).then((entities: any[]) => {
+            let query = null;
+            if (_this.difficulty == null) {
+                let questionsEasy = Math.round(_this.numberOfQuestions * 1 / 5);
+                let questionsMedium = Math.round(_this.numberOfQuestions * 3 / 5);
+                let questionsHard = Math.round(_this.numberOfQuestions * 1 / 5);
+                let promises: Promise<any[]>[] = [];
+                promises.push(_this.Question.findAll({
+                    where: {
+                        difficulty: Difficulty.EASY
+                    },
+                    limit: questionsEasy,
+                    order: [
+                        Sequelize.fn('RAND'),
+                    ]
+                }));
+                promises.push(_this.Question.findAll({
+                    where: {
+                        difficulty: Difficulty.MEDIUM
+                    },
+                    limit: questionsMedium,
+                    order: [
+                        Sequelize.fn('RAND'),
+                    ]
+                }));
+                promises.push(_this.Question.findAll({
+                    where: {
+                        difficulty: Difficulty.HARD
+                    },
+                    limit: questionsHard,
+                    order: [
+                        Sequelize.fn('RAND'),
+                    ]
+                }));
+                query = new Promise(function (resolve: Function) {
+                    let _result = [];
+                    Promise.all(promises).then((responses) => {
+                        responses.map((response) => {
+                            _result = _result.concat(response);
+                        });
+                        resolve(_result);
+                    });
+                });
+            } else {
+                query = _this.Question.findAll({
+                    where: {
+                        difficulty: _this.difficulty
+                    },
+                    limit: _this.numberOfQuestions,
+                    order: [
+                        Sequelize.fn('RAND'),
+                    ]
+                });
+            }
+            query.then((entities: any[]) => {
                 entities.forEach((entity) => {
                     result.push({
                         category: entity.get('categoryName'),
