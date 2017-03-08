@@ -31,7 +31,21 @@ class Gurubot {
 			{
 				token: this.token
 			}
-		).startRTM();
+		)
+		this.controller.on('rtm_close', function (bot, err) {
+			this._startRTM();
+		});
+		this._startRTM();
+	}
+
+	_startRTM() {
+		this.bot.startRTM(function (err, bot, payload) {
+			if (err) {
+				console.log('Failed to start RTM')
+				return setTimeout(this._startRTM, 60000);
+			}
+			console.log("RTM started!");
+		});
 	}
 
 	run(): void {
