@@ -7,10 +7,11 @@ let nconf = require('nconf');
 
 nconf.add('config', { type: 'file', file: './configBot.json' });
 nconf.env();
+let gurubot: Gurubot = null;
 
 try {
 	let tokenSlack = nconf.get('tokenslack');
-	let gurubot: Gurubot = new Gurubot(tokenSlack);
+	gurubot = new Gurubot(tokenSlack);
 	gurubot.run();
 	process.on('SIGINT', function () {
 		gurubot.shutDown().then(function () {
@@ -18,5 +19,8 @@ try {
 		});
 	});
 } catch (error) {
+	if(gurubot != null) {
+		gurubot.shutDown();
+	}
 	console.log('Bot failed' + error);
 }

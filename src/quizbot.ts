@@ -6,9 +6,106 @@ let shuffle = require('knuth-shuffle').knuthShuffle;
 
 import { Question, QuestionSimple, Answer, Difficulty } from './externals';
 import { Helpers } from './helpers';
+import * as Bot from './bot';
+import * as Gurubot from './gurubot';
 import * as QuestionProvider from './questionprovider';
 import * as TriviaDBProvider from './triviadbprovider';
 import * as MariaDBProvider from './mariadbprovider';
+
+class Quizbot implements Bot {
+
+	gurubot: Gurubot;
+	quiz: Quiz;
+
+	constructor(gurubot: Gurubot) {
+		this.gurubot = gurubot;
+	}
+
+	init(controller: any): void {
+		var _this = this;
+		controller.hears('^\\+quiz\\s*(\\d*)\\s*(\\w*)\\s*$', 'ambient', (bot, message) => {
+			if (!this.gurubot._isCommandAllowed('quiz', message)) {
+				bot.reply(message, '*Quiz not allowed in channel!*');
+				return;
+			}
+			if (!_this.quiz || !_this.quiz.isRunning()) {
+				let numberToWin = 5;
+				let difficulty = null;
+				if (message.match[1]) {
+					numberToWin = parseInt(message.match[1]);
+				}
+				if (message.match[2]) {
+					switch (message.match[2].toLowerCase()) {
+						case 'easy':
+							difficulty = Difficulty.EASY;
+							break;
+
+						case 'medium':
+							difficulty = Difficulty.MEDIUM;
+							break;
+
+						case 'hard':
+							difficulty = Difficulty.HARD
+							break;
+					}
+				}
+				_this.quiz = new Quiz(numberToWin, bot, message, difficulty);
+				bot.reply(message, 'Quiz started with ' + numberToWin + ' answers to win.');
+				_this.quiz.run();
+			} else {
+				bot.reply(message, 'Quiz is already running!');
+			}
+		});
+
+		controller.hears('\\+endquiz', 'ambient', (bot, message) => {
+			if (!this.gurubot._isCommandAllowed('quiz', message)) {
+				return;
+			}
+			if (_this.quiz) {
+				_this.quiz.stop();
+				_this.quiz = null;
+				bot.reply(message, 'Quiz stopped');
+			} else {
+				bot.reply(message, 'No quiz running!');
+			}
+		});
+
+		controller.hears('\\+scorequiz', 'ambient', (bot, message) => {
+			if (!this.gurubot._isCommandAllowed('quiz', message)) {
+				return;
+			}
+			if (_this.quiz) {
+				if (_this.quiz.isRunning()) {
+					bot.reply(message, _this.quiz.printStandings());
+				}
+			}
+		});
+	}
+
+	handleWildcardMessage(message: any) {
+		if (this.quiz) {
+			if (this.quiz.isRunning()) {
+				if (message.channel === this.quiz.message.channel) {
+					this.quiz.postAnswer(this.gurubot.users.find(user => user.id === message.user).name, message.text);
+				}
+			} else {
+				this.quiz = null;
+			}
+		}
+	}
+
+	destroy(): void {
+		if (this.quiz && this.quiz.isRunning()) {
+			this.quiz.stop();
+			this.quiz = null;
+		}
+	}
+
+	getCommands(): String[] {
+		return ['quiz [numberToWin] [difficulty]', 'endquiz', 'scorequiz'];
+	}
+
+}
 
 class Quiz {
 
@@ -42,7 +139,7 @@ class Quiz {
 		this.running = false;
 		this.questionProviders = [];
 		this.questionProviders.push(new TriviaDBProvider(null, difficulty));
-		this.questionProviders.push(new MariaDBProvider(40, difficulty));
+		//this.questionProviders.push(new MariaDBProvider(40, difficulty));
 	}
 
 	run(): void {
@@ -282,8 +379,8 @@ class AnswerWorker {
 	}
 }
 
-namespace Quiz {
-	module.exports = Quiz;
+namespace Quizbot {
+	module.exports = Quizbot;
 }
 
-export = Quiz;
+export = Quizbot;
