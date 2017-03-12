@@ -46,7 +46,7 @@ class Gurubot {
 	_startRTM() {
 		var _this = this;
 		if (!this.suspended) {
-			this.bot.startRTM(function (err, bot, payload) {
+			_this.bot.startRTM(function (err, bot, payload) {
 				if (err) {
 					console.log('Failed to start RTM')
 					return setTimeout(_this._startRTM, 60000);
