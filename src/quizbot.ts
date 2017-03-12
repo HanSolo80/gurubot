@@ -138,14 +138,14 @@ class Quiz {
 		this.message = message;
 		this.running = false;
 		this.questionProviders = [];
-		this.questionProviders.push(new TriviaDBProvider(null, difficulty));
-		//this.questionProviders.push(new MariaDBProvider(40, difficulty));
+		this.questionProviders.push(new TriviaDBProvider(20, difficulty));
+		this.questionProviders.push(new MariaDBProvider(80, difficulty));
 	}
 
 	run(): void {
 		var _this = this;
 		_this._fetchQuestionsFromProviders(_this.questionProviders).then((questions) => {
-			_this.questions = questions;
+			_this.questions = shuffle(questions);
 			this.answerWorker = new AnswerWorker(this);
 			this.answerWorker.run();
 			this.running = true;
@@ -162,7 +162,7 @@ class Quiz {
 		var _this = this;
 		if (this.questions.length == 0) {
 			_this._fetchQuestionsFromProviders(_this.questionProviders).then((questions) => {
-				_this.questions = questions;
+				_this.questions = shuffle(questions);
 				_this._postNextQuestion();
 			});
 		} else {

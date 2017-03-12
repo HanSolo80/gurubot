@@ -2,7 +2,6 @@
 
 let nconf = require('nconf');
 let sprintf = require('sprintf-js').sprintf;
-let shuffle = require('knuth-shuffle').knuthShuffle;
 
 import * as QuestionProvider from './questionprovider';
 import { Question, Difficulty } from './externals';
