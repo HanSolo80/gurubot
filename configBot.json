@@ -1,4 +1,5 @@
 {
+  "boob_url" : "http://api.oboobs.ru/boobs/%d/1/rank",
   "norrisapi_url": "http://api.icndb.com/jokes/random/",
   "question_url": "https://www.opentdb.com/api.php?amount=%d&difficulty=%s&type=multiple",
   "question_timeout": 15000,

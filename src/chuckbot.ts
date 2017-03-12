@@ -15,8 +15,8 @@ class ChuckBot implements Bot {
         this.gurubot = gurubot;
     }
 
-    init(controller: any): void {
-        controller.hears('\\+chuck', 'ambient', (bot, message) => {
+    init(): void {
+        this.gurubot.controller.hears('\\+chuck', 'ambient', (bot, message) => {
             Helpers.getJSONFromUrl(nconf.get('norrisapi_url')).then((fact) => {
                 bot.reply(message, fact.value.joke);
             });

@@ -6,6 +6,7 @@ let assert = require('assert');
 import * as Bot from './bot';
 import * as Quizbot from './quizbot';
 import * as ChuckBot from './chuckbot';
+import * as BoobBot from './boobbot';
 import { Helpers } from './helpers';
 import { QuestionSimple, Member, Channel, Difficulty } from './externals';
 
@@ -70,9 +71,10 @@ class Gurubot {
 
 		this.activeBots.push(new Quizbot(this));
 		this.activeBots.push(new ChuckBot(this));
+		this.activeBots.push(new BoobBot(this));
 
-		this.activeBots.forEach((bot) => {
-			bot.init(this.controller);
+		this.activeBots.forEach((bot : Bot) => {
+			bot.init();
 			commands = commands.concat(bot.getCommands());
 		});
 
@@ -92,8 +94,10 @@ class Gurubot {
 		var _this = this;
 		return new Promise(function (resolve: Function, reject: Function) {
 			_this.suspended = true;
+			_this.activeBots.forEach((bot: Bot) => {
+				bot.destroy();
+			});
 			_this.bot.closeRTM();
-
 			resolve();
 		});
 	}

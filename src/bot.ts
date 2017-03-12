@@ -3,7 +3,7 @@
 import * as Gurubot from './gurubot';
 
 interface Bot {
-	init(controller: any): void;
+	init(): void;
     destroy(): void;
     getCommands() : String[];
     handleWildcardMessage(message: any) : void;
