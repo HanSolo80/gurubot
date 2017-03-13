@@ -43,7 +43,7 @@ class Gurubot {
 		this._startRTM();
 	}
 
-	_startRTM() {
+	private _startRTM() {
 		var _this = this;
 		if (!this.suspended) {
 			_this.bot.startRTM(function (err, bot, payload) {
@@ -73,7 +73,7 @@ class Gurubot {
 		this.activeBots.push(new ChuckBot(this));
 		this.activeBots.push(new BoobBot(this));
 
-		this.activeBots.forEach((bot : Bot) => {
+		this.activeBots.forEach((bot: Bot) => {
 			bot.init();
 			commands = commands.concat(bot.getCommands());
 		});
@@ -90,7 +90,7 @@ class Gurubot {
 
 	}
 
-	shutDown(): Promise<any> {
+	public shutDown(): Promise<any> {
 		var _this = this;
 		return new Promise(function (resolve: Function, reject: Function) {
 			_this.suspended = true;
@@ -102,10 +102,14 @@ class Gurubot {
 		});
 	}
 
-	_isCommandAllowed(command: string, message: any): boolean {
-		let channelId = message.channel;
-		let channelName = this.channels.find(x => x.id === channelId).name;
-		return nconf.get('allowed_channels')[command].indexOf(channelName) !== -1;
+	public isCommandAllowed(command: string, message: any): boolean {
+		try {
+			let channelId = message.channel;
+			let channelName = this.channels.find(x => x.id === channelId).name;
+			return nconf.get('allowed_channels')[command].indexOf(channelName) !== -1;
+		} catch (e) {
+
+		}
 	}
 }
 

@@ -24,7 +24,7 @@ class Quizbot implements Bot {
 	init(): void {
 		var _this = this;
 		this.gurubot.controller.hears('^\\+quiz\\s*(\\d*)\\s*(\\w*)\\s*$', 'ambient', (bot, message) => {
-			if (!this.gurubot._isCommandAllowed('quiz', message)) {
+			if (!this.gurubot.isCommandAllowed('quiz', message)) {
 				bot.reply(message, '*Quiz not allowed in channel!*');
 				return;
 			}
@@ -58,7 +58,7 @@ class Quizbot implements Bot {
 		});
 
 		this.gurubot.controller.hears('\\+endquiz', 'ambient', (bot, message) => {
-			if (!this.gurubot._isCommandAllowed('quiz', message)) {
+			if (!this.gurubot.isCommandAllowed('quiz', message)) {
 				return;
 			}
 			if (_this.quiz) {
@@ -71,7 +71,7 @@ class Quizbot implements Bot {
 		});
 
 		this.gurubot.controller.hears('\\+scorequiz', 'ambient', (bot, message) => {
-			if (!this.gurubot._isCommandAllowed('quiz', message)) {
+			if (!this.gurubot.isCommandAllowed('quiz', message)) {
 				return;
 			}
 			if (_this.quiz) {

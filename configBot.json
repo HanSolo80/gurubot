@@ -6,6 +6,9 @@
   "allowed_channels": {
     "quiz": [
       "quiz"
+    ],
+    "boob": [
+      "nsfw"
     ]
   }
 }

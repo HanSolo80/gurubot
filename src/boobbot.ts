@@ -23,10 +23,12 @@ class BoobBot implements Bot {
 
     init(): void {
         this.gurubot.controller.hears('\\+boob', 'ambient', (bot, message) => {
+            if (!this.gurubot.isCommandAllowed('boob', message)) {
+				return;
+			}
             var boobsUrl = sprintf(nconf.get('boob_url'), this._randomInt(5000));
             request.get(boobsUrl, function (err, response) {
 
-                // post back
                 var payload = {
                     text: "http://media.oboobs.ru/" + JSON.parse(response.body)[0].preview
                 };
