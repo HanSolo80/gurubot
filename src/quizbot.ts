@@ -247,10 +247,12 @@ class Quiz {
 	}
 
 	_fetchNextQuestion(): Question {
-		let nextQuestion = this.questions[0];
-		this.questions.splice(0, 1);
-		if (!(nextQuestion.correct_answer.toLowerCase() === 'false' || nextQuestion.correct_answer.toLowerCase() === 'true') &&
-			(nextQuestion.question.includes('Which of') ||
+		let questionFound = false;
+		let nextQuestion = null;
+		while (!questionFound) {
+			nextQuestion = this.questions[0];
+			this.questions.splice(0, 1);
+			if (nextQuestion.question.includes('Which of') ||
 				nextQuestion.question.includes('Which one') ||
 				nextQuestion.question.includes('following') ||
 				nextQuestion.question.includes('which of') ||
@@ -258,10 +260,17 @@ class Quiz {
 				nextQuestion.question.includes('which is not') ||
 				nextQuestion.question.includes('isn\'t') ||
 				nextQuestion.question.includes('not') ||
-				nextQuestion.question.includes('NOT'))
-		) {
-			let answers = this._getShuffeledAnswers(nextQuestion.correct_answer, nextQuestion.incorrect_answers);
-			nextQuestion.question = nextQuestion.question + ' ( ' + answers + ' )';
+				nextQuestion.question.includes('NOT')
+			) {
+				if (nextQuestion.incorrect_answers.length > 0) {
+					let answers = this._getShuffeledAnswers(nextQuestion.correct_answer, nextQuestion.incorrect_answers);
+					nextQuestion.question = nextQuestion.question + ' ( ' + answers + ' )';
+					questionFound = true;
+				}
+			} else {
+				questionFound = true;
+			}
+			
 		}
 		this._setQuestion(nextQuestion);
 		return nextQuestion;
