@@ -19,6 +19,7 @@ class Gurubot {
 	token: string;
 	suspended: boolean;
 	activeBots: Bot[];
+	commands: String[];
 
 	/**
 	 * @param {String} slackToken
@@ -27,6 +28,7 @@ class Gurubot {
 		assert(slackToken, 'Slack Token is necessary obtain it at https://my.slack.com/services/new/bot and copy in configBot.json');
 		var _this = this;
 		this.activeBots = [];
+		this.commands = [];
 		this.token = slackToken;
 		this.controller = Botkit.slackbot({
 			debug: false
@@ -38,27 +40,34 @@ class Gurubot {
 			}
 		)
 		this.controller.on('rtm_close', function (bot, err) {
-			_this._startRTM();
+			if (!this.suspended) {
+				_this._stopBots();
+				_this._initBots();
+				_this._startRTM();
+			}
 		});
 		this._startRTM();
 	}
 
 	private _startRTM() {
 		var _this = this;
-		if (!this.suspended) {
-			_this.bot.startRTM(function (err, bot, payload) {
-				if (err) {
-					console.log('Failed to start RTM')
-					return setTimeout(_this._startRTM, 60000);
-				}
-				console.log("RTM started!");
-			});
-		}
+		this.bot.startRTM(function (err, bot, payload) {
+			if (err) {
+				console.log('Failed to start RTM')
+				return setTimeout(_this._startRTM, 60000);
+			}
+			console.log("RTM started!");
+		});
 	}
 
-	run(): void {
+	public run(): void {
 		let _this = this;
-		let commands: String[] = [];
+
+		this.activeBots.push(new Quizbot(this));
+		this.activeBots.push(new ChuckBot(this));
+		this.activeBots.push(new BoobBot(this));
+
+		this._initBots();
 
 		this.controller.on('hello', (bot, message) => {
 			bot.api.users.list({}, (err, data) => {
@@ -69,17 +78,8 @@ class Gurubot {
 			});
 		});
 
-		this.activeBots.push(new Quizbot(this));
-		this.activeBots.push(new ChuckBot(this));
-		this.activeBots.push(new BoobBot(this));
-
-		this.activeBots.forEach((bot: Bot) => {
-			bot.init();
-			commands = commands.concat(bot.getCommands());
-		});
-
 		this.controller.hears('\\+commands', 'ambient', (bot, message) => {
-			bot.reply(message, 'Commands: (+) ' + commands);
+			bot.reply(message, 'Commands: (+) ' + _this.commands);
 		});
 
 		this.controller.hears('', 'ambient', (bot, message) => {
@@ -94,9 +94,7 @@ class Gurubot {
 		var _this = this;
 		return new Promise(function (resolve: Function, reject: Function) {
 			_this.suspended = true;
-			_this.activeBots.forEach((bot: Bot) => {
-				bot.destroy();
-			});
+			_this._stopBots();
 			_this.bot.closeRTM();
 			resolve();
 		});
@@ -110,6 +108,20 @@ class Gurubot {
 		} catch (e) {
 
 		}
+	}
+
+	private _stopBots(): void {
+		this.commands = [];
+		this.activeBots.forEach((bot: Bot) => {
+			bot.destroy();
+		});
+	}
+
+	private _initBots(): void {
+		this.activeBots.forEach((bot: Bot) => {
+			bot.init();
+			this.commands = this.commands.concat(bot.getCommands());
+		});
 	}
 }
 

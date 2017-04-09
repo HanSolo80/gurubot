@@ -18,7 +18,7 @@ class ChuckBot implements Bot {
         this.entities = new Entities();
     }
 
-    init(): void {
+    public init(): void {
         this.gurubot.controller.hears('\\+chuck', 'ambient', (bot, message) => {
             Helpers.getJSONFromUrl(nconf.get('norrisapi_url')).then((fact) => {
                 bot.reply(message, this.entities.decode(fact.value.joke));
@@ -26,15 +26,15 @@ class ChuckBot implements Bot {
         });
     }
 
-    destroy(): void {
+    public destroy(): void {
 
     }
 
-    handleWildcardMessage(message: any) {
+    public handleWildcardMessage(message: any) {
 
     }
 
-    getCommands(): String[] {
+    public getCommands(): String[] {
         return ['chuck'];
     }
 }

@@ -14,69 +14,79 @@ class MariaDBProvider implements QuestionProvider {
     Question;
     numberOfQuestions: number;
     difficulty: Difficulty;
+    disabled: boolean;
 
     constructor(numberOfQuestions?: number, difficulty?: Difficulty) {
-        this.numberOfQuestions = numberOfQuestions || 50;
-        this.difficulty = difficulty;
-        let connectOptions = {
-            dialect: 'mariadb',
-            pool: {
-                max: 5,
-                min: 0,
-                idle: 10000
+        try {
+            this.numberOfQuestions = numberOfQuestions || 50;
+            this.difficulty = difficulty;
+            let connectOptions = {
+                dialect: 'mariadb',
+                pool: {
+                    max: 5,
+                    min: 0,
+                    idle: 10000
+                }
             }
+            if (nconf.get('socketpath')) {
+                connectOptions['dialectOptions'] = {
+                    socketPath: nconf.get('socketpath')
+                };
+            }
+            this.sequelize = new Sequelize(nconf.get('dburi'), connectOptions);
+            this.Category = this.sequelize.define('category',
+                {
+                    name: {
+                        type: Sequelize.STRING,
+                        field: 'name'
+                    }
+                },
+                {
+                    freezeTableName: true,
+                    timestamps: false
+                });
+            this.Question = this.sequelize.define('question',
+                {
+                    question: {
+                        type: Sequelize.STRING,
+                        field: 'question'
+                    },
+                    answer: {
+                        type: Sequelize.STRING,
+                        field: 'answer'
+                    },
+                    difficulty: {
+                        type: Sequelize.INTEGER,
+                        field: 'difficulty'
+                    },
+                    categoryName: {
+                        type: Sequelize.STRING,
+                        field: 'categoryname'
+                    },
+                    categoryId: {
+                        type: Sequelize.INTEGER,
+                        field: 'category_id'
+                    }
+                },
+                {
+                    freezeTableName: true,
+                    timestamps: false
+                });
+            this.Category.hasMany(this.Question);
+        } catch (e) {
+            this.disabled = true;
         }
-        if (nconf.get('socketpath')) {
-            connectOptions['dialectOptions'] = {
-                socketPath: nconf.get('socketpath')
-            };
-        }
-        this.sequelize = new Sequelize(nconf.get('dburi'), connectOptions);
-        this.Category = this.sequelize.define('category',
-            {
-                name: {
-                    type: Sequelize.STRING,
-                    field: 'name'
-                }
-            },
-            {
-                freezeTableName: true,
-                timestamps: false
-            });
-        this.Question = this.sequelize.define('question',
-            {
-                question: {
-                    type: Sequelize.STRING,
-                    field: 'question'
-                },
-                answer: {
-                    type: Sequelize.STRING,
-                    field: 'answer'
-                },
-                difficulty: {
-                    type: Sequelize.INTEGER,
-                    field: 'difficulty'
-                },
-                categoryName: {
-                    type: Sequelize.STRING,
-                    field: 'categoryname'
-                },
-                categoryId: {
-                    type: Sequelize.INTEGER,
-                    field: 'category_id'
-                }
-            },
-            {
-                freezeTableName: true,
-                timestamps: false
-            });
-        this.Category.hasMany(this.Question);
+
     }
 
-    fetchQuestions(): Promise<Question[]> {
+    public fetchQuestions(): Promise<Question[]> {
         let _this = this;
         return new Promise(function (resolve: Function, reject: Function) {
             let result: Question[] = [];
+            if (_this.disabled) {
+                resolve(result);
+                return;
+            }
             let query = null;
             if (_this.difficulty == null) {
                 let questionsEasy = Math.round(_this.numberOfQuestions * 1 / 5);

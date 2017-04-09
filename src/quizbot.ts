@@ -21,7 +21,7 @@ class Quizbot implements Bot {
 		this.gurubot = gurubot;
 	}
 
-	init(): void {
+	public init(): void {
 		var _this = this;
 		this.gurubot.controller.hears('^\\+quiz\\s*(\\d*)\\s*(\\w*)\\s*$', 'ambient', (bot, message) => {
 			if (!this.gurubot.isCommandAllowed('quiz', message)) {
@@ -82,7 +82,7 @@ class Quizbot implements Bot {
 		});
 	}
 
-	handleWildcardMessage(message: any) {
+	public handleWildcardMessage(message: any) {
 		if (this.quiz) {
 			if (this.quiz.isRunning()) {
 				if (message.channel === this.quiz.message.channel) {
@@ -94,14 +94,14 @@ class Quizbot implements Bot {
 		}
 	}
 
-	destroy(): void {
+	public destroy(): void {
 		if (this.quiz && this.quiz.isRunning()) {
 			this.quiz.stop();
 			this.quiz = null;
 		}
 	}
 
-	getCommands(): String[] {
+	public getCommands(): String[] {
 		return ['quiz [numberToWin] [difficulty]', 'endquiz', 'scorequiz'];
 	}
 
@@ -142,7 +142,7 @@ class Quiz {
 		this.questionProviders.push(new MariaDBProvider(80, difficulty));
 	}
 
-	run(): void {
+	public run(): void {
 		var _this = this;
 		_this._fetchQuestionsFromProviders(_this.questionProviders).then((questions) => {
 			_this.questions = shuffle(questions);
@@ -154,11 +154,11 @@ class Quiz {
 
 
 
-	isRunning(): boolean {
+	public isRunning(): boolean {
 		return this.running;
 	}
 
-	askNextQuestion(bot, answer): void {
+	public askNextQuestion(bot, answer): void {
 		var _this = this;
 		if (this.questions.length == 0) {
 			_this._fetchQuestionsFromProviders(_this.questionProviders).then((questions) => {
@@ -170,7 +170,7 @@ class Quiz {
 		}
 	}
 
-	_fetchQuestionsFromProviders(providers: QuestionProvider[]): Promise<Question[]> {
+	private _fetchQuestionsFromProviders(providers: QuestionProvider[]): Promise<Question[]> {
 		return new Promise(function (resolve: Function) {
 			let result: Question[] = [];
 			let promises: Promise<Question[]>[] = [];
@@ -186,7 +186,7 @@ class Quiz {
 		});
 	}
 
-	_postNextQuestion() {
+	private _postNextQuestion() {
 		let next = this._fetchNextQuestion();
 		this._setQuestion(next);
 		let reply = {
@@ -202,18 +202,18 @@ class Quiz {
 		this.bot.reply(this.message, reply);
 	}
 
-	getCurrentQuestion(): QuestionSimple {
+	public getCurrentQuestion(): QuestionSimple {
 		return {
 			question: this.entities.decode(this.currentQuestion),
 			answer: this.entities.decode(this.currentAnswer)
 		};
 	}
 
-	postAnswer(user: string, answer: string): void {
+	public postAnswer(user: string, answer: string): void {
 		this.answerQueue.push({ name: user, answer: answer });
 	}
 
-	printStandings(): string {
+	public printStandings(): string {
 		let result = '';
 		let participants = [];
 		for (let user in this.participants) {
@@ -230,7 +230,7 @@ class Quiz {
 		return result;
 	}
 
-	_checkWinner(): string {
+	private _checkWinner(): string {
 		for (let user in this.participants) {
 			if (this.participants.hasOwnProperty(user)) {
 				if (this.participants[user] === this.numberToWin) {
@@ -241,12 +241,12 @@ class Quiz {
 		return null;
 	}
 
-	stop(): void {
+	public stop(): void {
 		this.answerWorker.reset();
 		this.running = false;
 	}
 
-	_fetchNextQuestion(): Question {
+	private _fetchNextQuestion(): Question {
 		let questionFound = false;
 		let nextQuestion = null;
 		while (!questionFound) {
@@ -276,22 +276,22 @@ class Quiz {
 		return nextQuestion;
 	}
 
-	_setQuestion(nextQuestion: Question): void {
+	private _setQuestion(nextQuestion: Question): void {
 		this.currentQuestion = nextQuestion.question;
 		this.currentAnswer = nextQuestion.correct_answer;
 	}
 
-	resetQuestion(): void {
+	public resetQuestion(): void {
 		this.currentQuestion = null;
 		this.currentAnswer = null;
 		this.answerQueue = [];
 	}
 
-	_hasCurrentQuestion(): boolean {
+	public hasCurrentQuestion(): boolean {
 		return this.currentQuestion !== null && this.currentAnswer !== null;
 	}
 
-	_checkAnswer(answer: Answer): boolean {
+	public checkAnswer(answer: Answer): boolean {
 		if (this.currentAnswer === null || this.currentQuestion === null) {
 			return false;
 		}
@@ -319,7 +319,7 @@ class Quiz {
 		}
 	}
 
-	_decode(text: string): string {
+	private _decode(text: string): string {
 		let decoded: string = this.entities.decode(text);
 		decoded = decoded.replace('&uuml;', 'ü');
 		decoded = decoded.replace('&ouml;', 'ö');
@@ -327,7 +327,7 @@ class Quiz {
 		return decoded;
 	}
 
-	_getShuffeledAnswers(correctAnswer: string, incorrectAnswers: string[]): string {
+	private _getShuffeledAnswers(correctAnswer: string, incorrectAnswers: string[]): string {
 		let answers = incorrectAnswers;
 		answers.push(correctAnswer);
 		return Helpers.printArray(shuffle(answers));
@@ -344,19 +344,19 @@ class AnswerWorker {
 		this.quiz = quiz;
 	}
 
-	run(): void {
+	public run(): void {
 		this._triggerNextQuestion();
 		this.timer = setInterval(() => {
 			this._doWork();
 		}, 250);
 	}
 
-	reset(): void {
+	public reset(): void {
 		clearInterval(this.timer);
 	}
 
-	_doWork(): void {
-		if (this.quiz._hasCurrentQuestion()) {
+	private _doWork(): void {
+		if (this.quiz.hasCurrentQuestion()) {
 			if (new Date().getTime() > this.solutionTime) {
 				this.reset();
 				this.quiz.bot.reply(this.quiz.message, "Answer was: *" + this.quiz.getCurrentQuestion().answer + '*');
@@ -368,7 +368,7 @@ class AnswerWorker {
 
 	}
 
-	_triggerNextQuestion(): void {
+	private _triggerNextQuestion(): void {
 		this.quiz.resetQuestion();
 		setTimeout(() => {
 			this.solutionTime = new Date().getTime() + nconf.get('question_timeout');
@@ -376,10 +376,10 @@ class AnswerWorker {
 		}, 1500);
 	}
 
-	_checkAnswer(): void {
+	private _checkAnswer(): void {
 		if (this.quiz.isRunning && this.quiz.answerQueue.length > 0) {
 			let answer = this.quiz.answerQueue.shift();
-			let correct = this.quiz._checkAnswer(answer);
+			let correct = this.quiz.checkAnswer(answer);
 			if (correct) {
 				this.reset();
 				this.run();

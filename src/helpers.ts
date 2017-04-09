@@ -4,7 +4,7 @@ let request = require('request');
 import { Question } from './externals';
 
 class Helpers {
-	static getJSONFromUrl(url: string): Promise<any> {
+	public static getJSONFromUrl(url: string): Promise<any> {
 		return new Promise(function (resolve: Function, reject: Function) {
 			request.get({
 				url: url,
@@ -24,7 +24,7 @@ class Helpers {
 		});
 	}
 
-	static getQuestionsFromURL(url: string): Promise<Question[]> {
+	public static getQuestionsFromURL(url: string): Promise<Question[]> {
 		return new Promise(function (resolve: Function) {
 			Helpers.getJSONFromUrl(url).then((data) => {
 				resolve(data.results);
@@ -32,7 +32,7 @@ class Helpers {
 		});
 	}
 
-	static printArray(array: string[]) {
+	public static printArray(array: string[]) {
 		let out = '';
 		for (let i = 0; i < array.length; i++) {
 			out += array[i];

@@ -17,7 +17,7 @@ class TriviaDBProvider implements QuestionProvider {
         this.difficulty = difficulty;
     }
 
-    fetchQuestions(): Promise<Question[]> {
+    public fetchQuestions(): Promise<Question[]> {
         let _this = this;
         return new Promise(function (resolve: Function) {
             _this._loadQuestions().then((responses) => {
@@ -26,7 +26,7 @@ class TriviaDBProvider implements QuestionProvider {
         });
     }
 
-    _loadQuestions(): Promise<any> {
+    private _loadQuestions(): Promise<any> {
         if (this.difficulty) {
             return Helpers.getQuestionsFromURL(sprintf(nconf.get('question_url'), this.numberOfQuestions, Difficulty[this.difficulty].toLowerCase()));
         } else {
@@ -41,7 +41,7 @@ class TriviaDBProvider implements QuestionProvider {
         }
     }
 
-    _processQuestionResponses(responses: Question[][]): Question[] {
+    private _processQuestionResponses(responses: Question[][]): Question[] {
         let result: Question[] = [];
         responses.map((response) => {
             result = result.concat(response);

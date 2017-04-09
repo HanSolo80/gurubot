@@ -17,11 +17,7 @@ class BoobBot implements Bot {
         this.gurubot = gurubot;
     }
 
-    _randomInt(high) {
-        return Math.floor(Math.random() * high);
-    }
-
-    init(): void {
+    public init(): void {
         this.gurubot.controller.hears('\\+boob', 'ambient', (bot, message) => {
             if (!this.gurubot.isCommandAllowed('boob', message)) {
 				return;
@@ -38,16 +34,20 @@ class BoobBot implements Bot {
         });
     }
 
-    destroy(): void {
+    public destroy(): void {
 
     }
 
-    handleWildcardMessage(message: any) {
+    public handleWildcardMessage(message: any) {
 
     }
 
-    getCommands(): String[] {
+    public getCommands(): String[] {
         return ['boob'];
+    }
+
+    private _randomInt(high) {
+        return Math.floor(Math.random() * high);
     }
 }
 
