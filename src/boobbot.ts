@@ -7,8 +7,6 @@ let request = require("request");
 import * as Bot from './bot';
 import * as Gurubot from './gurubot';
 
-import { Helpers } from './helpers';
-
 class BoobBot implements Bot {
 
     gurubot: Gurubot;
@@ -22,10 +20,10 @@ class BoobBot implements Bot {
             if (!this.gurubot.isCommandAllowed('boob', message)) {
 				return;
 			}
-            var boobsUrl = sprintf(nconf.get('boob_url'), this._randomInt(5000));
+            let boobsUrl = sprintf(nconf.get('boob_url'), this._randomInt(5000));
             request.get(boobsUrl, function (err, response) {
 
-                var payload = {
+                let payload = {
                     text: "http://media.oboobs.ru/" + JSON.parse(response.body)[0].preview
                 };
 

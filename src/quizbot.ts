@@ -22,7 +22,7 @@ class Quizbot implements Bot {
 	}
 
 	public init(): void {
-		var _this = this;
+		let _this = this;
 		this.gurubot.controller.hears('^\\+quiz\\s*(\\d*)\\s*(\\w*)\\s*$', 'ambient', (bot, message) => {
 			if (!this.gurubot.isCommandAllowed('quiz', message)) {
 				bot.reply(message, '*Quiz not allowed in channel!*');
@@ -45,7 +45,7 @@ class Quizbot implements Bot {
 							break;
 
 						case 'hard':
-							difficulty = Difficulty.HARD
+							difficulty = Difficulty.HARD;
 							break;
 					}
 				}
@@ -112,7 +112,6 @@ class Quiz {
 	numberToWin: number;
 	answerTime: number;
 	questionsAnswered: number;
-	questionCallback: Function;
 	participants: Object;
 	questions: Question[];
 	currentQuestion: string;
@@ -143,7 +142,7 @@ class Quiz {
 	}
 
 	public run(): void {
-		var _this = this;
+		let _this = this;
 		_this._fetchQuestionsFromProviders(_this.questionProviders).then((questions) => {
 			_this.questions = shuffle(questions);
 			this.answerWorker = new AnswerWorker(this);
@@ -158,8 +157,8 @@ class Quiz {
 		return this.running;
 	}
 
-	public askNextQuestion(bot, answer): void {
-		var _this = this;
+	public askNextQuestion(): void {
+		let _this = this;
 		if (this.questions.length == 0) {
 			_this._fetchQuestionsFromProviders(_this.questionProviders).then((questions) => {
 				_this.questions = shuffle(questions);
@@ -198,7 +197,7 @@ class Quiz {
 					'color': 'good'
 				}
 			]
-		}
+		};
 		this.bot.reply(this.message, reply);
 	}
 
@@ -372,7 +371,7 @@ class AnswerWorker {
 		this.quiz.resetQuestion();
 		setTimeout(() => {
 			this.solutionTime = new Date().getTime() + nconf.get('question_timeout');
-			this.quiz.askNextQuestion(this.quiz.bot, this.quiz.message);
+			this.quiz.askNextQuestion();
 		}, 1500);
 	}
 

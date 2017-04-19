@@ -7,8 +7,7 @@ import * as Bot from './bot';
 import * as Quizbot from './quizbot';
 import * as ChuckBot from './chuckbot';
 import * as BoobBot from './boobbot';
-import { Helpers } from './helpers';
-import { QuestionSimple, Member, Channel, Difficulty } from './externals';
+import { Member, Channel } from './externals';
 
 class Gurubot {
 
@@ -26,7 +25,7 @@ class Gurubot {
 	 */
 	constructor(slackToken) {
 		assert(slackToken, 'Slack Token is necessary obtain it at https://my.slack.com/services/new/bot and copy in configBot.json');
-		var _this = this;
+		let _this = this;
 		this.activeBots = [];
 		this.commands = [];
 		this.token = slackToken;
@@ -38,8 +37,8 @@ class Gurubot {
 			{
 				token: this.token
 			}
-		)
-		this.controller.on('rtm_close', function (bot, err) {
+		);
+		this.controller.on('rtm_close', function () {
 			if (!this.suspended) {
 				_this._stopBots();
 				_this._initBots();
@@ -50,10 +49,10 @@ class Gurubot {
 	}
 
 	private _startRTM() {
-		var _this = this;
-		this.bot.startRTM(function (err, bot, payload) {
+		let _this = this;
+		this.bot.startRTM(function (err) {
 			if (err) {
-				console.log('Failed to start RTM')
+				console.log('Failed to start RTM');
 				return setTimeout(_this._startRTM, 60000);
 			}
 			console.log("RTM started!");
@@ -69,7 +68,7 @@ class Gurubot {
 
 		this._initBots();
 
-		this.controller.on('hello', (bot, message) => {
+		this.controller.on('hello', (bot) => {
 			bot.api.users.list({}, (err, data) => {
 				_this.users = data.members;
 			});
@@ -91,8 +90,8 @@ class Gurubot {
 	}
 
 	public shutDown(): Promise<any> {
-		var _this = this;
-		return new Promise(function (resolve: Function, reject: Function) {
+		let _this = this;
+		return new Promise(function (resolve: Function) {
 			_this.suspended = true;
 			_this._stopBots();
 			_this.bot.closeRTM();

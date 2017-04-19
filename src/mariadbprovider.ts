@@ -27,7 +27,7 @@ class MariaDBProvider implements QuestionProvider {
                     min: 0,
                     idle: 10000
                 }
-            }
+            };
             if (nconf.get('socketpath')) {
                 connectOptions['dialectOptions'] = {
                     socketPath: nconf.get('socketpath')
@@ -81,7 +81,7 @@ class MariaDBProvider implements QuestionProvider {
 
     public fetchQuestions(): Promise<Question[]> {
         let _this = this;
-        return new Promise(function (resolve: Function, reject: Function) {
+        return new Promise(function (resolve: Function) {
             let result: Question[] = [];
             if (_this.disabled) {
                 resolve(result);
@@ -89,9 +89,9 @@ class MariaDBProvider implements QuestionProvider {
             }
             let query = null;
             if (_this.difficulty == null) {
-                let questionsEasy = Math.round(_this.numberOfQuestions * 1 / 5);
+                let questionsEasy = Math.round(_this.numberOfQuestions / 5);
                 let questionsMedium = Math.round(_this.numberOfQuestions * 3 / 5);
-                let questionsHard = Math.round(_this.numberOfQuestions * 1 / 5);
+                let questionsHard = Math.round(_this.numberOfQuestions / 5);
                 let promises: Promise<any[]>[] = [];
                 promises.push(_this.Question.findAll({
                     where: {
