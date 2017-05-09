@@ -2,7 +2,7 @@
 
 require('console-stamp')(console);
 
-import * as Gurubot from './gurubot';
+import Gurubot from './gurubot';
 let nconf = require('nconf');
 
 nconf.add('config', { type: 'file', file: './configBot.json' });

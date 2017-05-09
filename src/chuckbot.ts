@@ -3,12 +3,12 @@
 let nconf = require('nconf');
 let Entities = require('html-entities').AllHtmlEntities;
 
-import * as Bot from './bot';
-import * as Gurubot from './gurubot';
+import Bot from './bot';
+import Gurubot from './gurubot';
 
 import { Helpers } from './helpers';
 
-class ChuckBot implements Bot {
+export default class ChuckBot implements Bot {
 
     gurubot: Gurubot;
     entities: any;
@@ -38,9 +38,3 @@ class ChuckBot implements Bot {
         return ['chuck'];
     }
 }
-
-namespace ChuckBot {
-    module.exports = ChuckBot;
-}
-
-export = ChuckBot;

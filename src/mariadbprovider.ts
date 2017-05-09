@@ -4,10 +4,10 @@ let nconf = require('nconf');
 let shuffle = require('knuth-shuffle').knuthShuffle;
 let Sequelize = require('sequelize');
 
-import * as QuestionProvider from './questionprovider';
+import QuestionProvider from './questionprovider';
 import { Question, Difficulty } from './externals';
 
-class MariaDBProvider implements QuestionProvider {
+export default class MariaDBProvider implements QuestionProvider {
 
     sequelize;
     Category;
@@ -157,9 +157,3 @@ class MariaDBProvider implements QuestionProvider {
     }
 
 }
-
-namespace MariaDBProvider {
-    module.exports = MariaDBProvider;
-}
-
-export = MariaDBProvider;

@@ -3,11 +3,11 @@
 let nconf = require('nconf');
 let sprintf = require('sprintf-js').sprintf;
 
-import * as QuestionProvider from './questionprovider';
+import QuestionProvider from './questionprovider';
 import { Question, Difficulty } from './externals';
 import { Helpers } from './helpers';
 
-class TriviaDBProvider implements QuestionProvider {
+export default class TriviaDBProvider implements QuestionProvider {
 
     numberOfQuestions: number;
     difficulty: Difficulty;
@@ -49,8 +49,3 @@ class TriviaDBProvider implements QuestionProvider {
         return result;
     }
 }
-namespace TriviaDBProvider {
-    module.exports = TriviaDBProvider;
-}
-
-export = TriviaDBProvider;

@@ -3,13 +3,12 @@
 let nconf = require('nconf');
 let Botkit = require('botkit');
 let assert = require('assert');
-import * as Bot from './bot';
-import * as Quizbot from './quizbot';
-import * as ChuckBot from './chuckbot';
-import * as BoobBot from './boobbot';
+import Bot from './bot';
+import Quizbot from './quizbot';
+import ChuckBot from './chuckbot';
 import { Member, Channel } from './externals';
 
-class Gurubot {
+export default class Gurubot {
 
 	controller: any;
 	bot: any;
@@ -64,7 +63,6 @@ class Gurubot {
 
 		this.activeBots.push(new Quizbot(this));
 		this.activeBots.push(new ChuckBot(this));
-		this.activeBots.push(new BoobBot(this));
 
 		this._initBots();
 
@@ -123,9 +121,3 @@ class Gurubot {
 		});
 	}
 }
-
-namespace Gurubot {
-	module.exports = Gurubot;
-}
-
-export = Gurubot;

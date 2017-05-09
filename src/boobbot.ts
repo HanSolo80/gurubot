@@ -4,10 +4,10 @@ let nconf = require('nconf');
 let sprintf = require('sprintf-js').sprintf;
 let request = require("request");
 
-import * as Bot from './bot';
-import * as Gurubot from './gurubot';
+import Bot from './bot';
+import Gurubot from './gurubot';
 
-class BoobBot implements Bot {
+export default class BoobBot implements Bot {
 
     gurubot: Gurubot;
 
@@ -48,9 +48,3 @@ class BoobBot implements Bot {
         return Math.floor(Math.random() * high);
     }
 }
-
-namespace BoobBot {
-    module.exports = BoobBot;
-}
-
-export = BoobBot;

@@ -1,6 +1,6 @@
 'use strict';
 
-import * as Gurubot from './gurubot';
+import Gurubot from './gurubot';
 
 interface Bot {
 	init(): void;
@@ -12,4 +12,4 @@ declare let Bot: {
 	new (gurubot: Gurubot): Bot;
 };
 
-export = Bot;
+export default Bot;

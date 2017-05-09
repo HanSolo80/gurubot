@@ -6,13 +6,13 @@ let shuffle = require('knuth-shuffle').knuthShuffle;
 
 import { Question, QuestionSimple, Answer, Difficulty } from './externals';
 import { Helpers } from './helpers';
-import * as Bot from './bot';
-import * as Gurubot from './gurubot';
-import * as QuestionProvider from './questionprovider';
-import * as TriviaDBProvider from './triviadbprovider';
-import * as MariaDBProvider from './mariadbprovider';
+import Bot from './bot';
+import Gurubot from './gurubot';
+import QuestionProvider from './questionprovider';
+import TriviaDBProvider from './triviadbprovider';
+import MariaDBProvider from './mariadbprovider';
 
-class Quizbot implements Bot {
+export default class Quizbot implements Bot {
 
 	gurubot: Gurubot;
 	quiz: Quiz;
@@ -386,9 +386,3 @@ class AnswerWorker {
 		}
 	}
 }
-
-namespace Quizbot {
-	module.exports = Quizbot;
-}
-
-export = Quizbot;

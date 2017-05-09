@@ -9,4 +9,4 @@ declare let QuestionProvider: {
 	new (numberOfQuestions?: number, difficulty?: Difficulty): QuestionProvider;
 };
 
-export = QuestionProvider;
+export default QuestionProvider;
