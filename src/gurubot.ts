@@ -6,6 +6,7 @@ let assert = require('assert');
 import Bot from './bot';
 import Quizbot from './quizbot';
 import ChuckBot from './chuckbot';
+import BoobBot from './boobbot';
 import { Member, Channel } from './externals';
 
 export default class Gurubot {
@@ -63,6 +64,7 @@ export default class Gurubot {
 
 		this.activeBots.push(new Quizbot(this));
 		this.activeBots.push(new ChuckBot(this));
+		this.activeBots.push(new BoobBot(this));
 
 		this._initBots();
 
