@@ -12,11 +12,7 @@ export default class BoobBot implements Bot {
     gurubot: Gurubot;
 
     constructor(gurubot: Gurubot) {
-        this.gurubot = gurubot;
-    }
-
-    public init(): void {
-        this.gurubot.controller.hears('\\+boob', 'ambient', (bot, message) => {
+        gurubot.controller.hears('\\+boob', 'ambient', (bot, message) => {
             if (!this.gurubot.isCommandAllowed('boob', message)) {
 				return;
 			}
@@ -30,6 +26,10 @@ export default class BoobBot implements Bot {
                 bot.reply(message, payload.text.replace('_preview', ''));
             });
         });
+    }
+
+    public init(): void {
+        
     }
 
     public destroy(): void {

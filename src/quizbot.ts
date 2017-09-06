@@ -18,11 +18,8 @@ export default class Quizbot implements Bot {
 	quiz: Quiz;
 
 	constructor(gurubot: Gurubot) {
-		this.gurubot = gurubot;
-	}
-
-	public init(): void {
 		let _this = this;
+		this.gurubot = gurubot;
 		this.gurubot.controller.hears('^\\+quiz\\s*(\\d*)\\s*(\\w*)\\s*$', 'ambient', (bot, message) => {
 			if (!this.gurubot.isCommandAllowed('quiz', message)) {
 				bot.reply(message, '*Quiz not allowed in channel!*');
@@ -80,6 +77,10 @@ export default class Quizbot implements Bot {
 				}
 			}
 		});
+	}
+
+	public init(): void {
+		
 	}
 
 	public handleWildcardMessage(message: any) {

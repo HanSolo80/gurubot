@@ -14,16 +14,16 @@ export default class ChuckBot implements Bot {
     entities: any;
 
     constructor(gurubot: Gurubot) {
-        this.gurubot = gurubot;
         this.entities = new Entities();
-    }
-
-    public init(): void {
-        this.gurubot.controller.hears('\\+chuck', 'ambient', (bot, message) => {
+        gurubot.controller.hears('\\+chuck', 'ambient', (bot, message) => {
             Helpers.getJSONFromUrl(nconf.get('norrisapi_url')).then((fact) => {
                 bot.reply(message, this.entities.decode(fact.value.joke));
             });
         });
+    }
+
+    public init(): void {
+        
     }
 
     public destroy(): void {
