@@ -12,8 +12,10 @@ export default class BoobBot implements Bot {
     gurubot: Gurubot;
 
     constructor(gurubot: Gurubot) {
+        let _this = this;
+        this.gurubot = gurubot;
         gurubot.controller.hears('\\+boob', 'ambient', (bot, message) => {
-            if (!this.gurubot.isCommandAllowed('boob', message)) {
+            if (!_this.gurubot.isCommandAllowed('boob', message)) {
 				return;
 			}
             let boobsUrl = sprintf(nconf.get('boob_url'), this._randomInt(5000));

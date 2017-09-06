@@ -21,7 +21,7 @@ export default class Quizbot implements Bot {
 		let _this = this;
 		this.gurubot = gurubot;
 		this.gurubot.controller.hears('^\\+quiz\\s*(\\d*)\\s*(\\w*)\\s*$', 'ambient', (bot, message) => {
-			if (!this.gurubot.isCommandAllowed('quiz', message)) {
+			if (!_this.gurubot.isCommandAllowed('quiz', message)) {
 				bot.reply(message, '*Quiz not allowed in channel!*');
 				return;
 			}
