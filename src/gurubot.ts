@@ -29,7 +29,7 @@ export default class Gurubot {
 		this.commands = [];
 		this.token = slackToken;
 		this.controller = Botkit.slackbot({
-			debug: true
+			debug: false
 		});
 
 		this.bot = this.controller.spawn(
