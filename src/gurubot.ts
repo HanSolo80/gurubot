@@ -16,7 +16,6 @@ export default class Gurubot {
 	users: Member[];
 	channels: Channel[];
 	token: string;
-	suspended: boolean;
 	activeBots: Bot[];
 	commands: String[];
 
@@ -30,7 +29,7 @@ export default class Gurubot {
 		this.commands = [];
 		this.token = slackToken;
 		this.controller = Botkit.slackbot({
-			debug: false
+			debug: true
 		});
 
 		this.bot = this.controller.spawn(
@@ -39,11 +38,10 @@ export default class Gurubot {
 			}
 		);
 		this.controller.on('rtm_close', function () {
-			if (!this.suspended) {
-				_this._stopBots();
-				_this._initBots();
-				_this._startRTM();
-			}
+			console.log("RTM closed");
+			_this.shutDown().then(function () {
+				process.exit(0);
+			});
 		});
 		this._startRTM();
 	}
@@ -92,9 +90,7 @@ export default class Gurubot {
 	public shutDown(): Promise<any> {
 		let _this = this;
 		return new Promise(function (resolve: Function) {
-			_this.suspended = true;
 			_this._stopBots();
-			_this.bot.closeRTM();
 			resolve();
 		});
 	}
