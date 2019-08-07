@@ -14,7 +14,7 @@ export default class BoobBot implements Bot {
     constructor(gurubot: Gurubot) {
         let _this = this;
         this.gurubot = gurubot;
-        gurubot.controller.hears('\\+boob', 'ambient', (bot, message) => {
+        gurubot.controller.hears('\\+boob', 'ambient', async (bot, message) => {
             if (!_this.gurubot.isCommandAllowed('boob', message)) {
 				return;
 			}

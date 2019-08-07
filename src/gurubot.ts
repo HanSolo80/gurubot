@@ -1,8 +1,11 @@
 'use strict';
 
+
+import {SlackAdapter} from 'botbuilder-adapter-slack';
+
 let nconf = require('nconf');
-let Botkit = require('botkit');
 let assert = require('assert');
+import {Botkit, BotWorker} from 'botkit';
 import Bot from './bot';
 import Quizbot from './quizbot';
 import ChuckBot from './chuckbot';
@@ -11,8 +14,8 @@ import { Member, Channel } from './externals';
 
 export default class Gurubot {
 
-	controller: any;
-	bot: any;
+	controller: Botkit;
+	bot: BotWorker;
 	users: Member[];
 	channels: Channel[];
 	token: string;
@@ -22,39 +25,51 @@ export default class Gurubot {
 	/**
 	 * @param {String} slackToken
 	 */
-	constructor(slackToken) {
+	constructor(slackToken: string) {
 		assert(slackToken, 'Slack Token is necessary obtain it at https://my.slack.com/services/new/bot and copy in configBot.json');
 		let _this = this;
 		this.activeBots = [];
 		this.commands = [];
 		this.token = slackToken;
-		this.controller = Botkit.slackbot({
-			debug: false
+		const adapter: SlackAdapter = new SlackAdapter({
+			botToken: "",
+			clientId: "",
+			clientSecret: "",
+			clientSigningSecret: "",
+			enable_incomplete: false,
+			getBotUserByTeam: function (p1: string) {
+				return undefined;
+			},
+			getTokenForTeam: function (p1: string) {
+				return undefined;
+			},
+			redirectUri: "",
+			scopes: [],
+			verificationToken: ""
 		});
+		this.controller = new Botkit({
+			adapterConfig: {},
+			dialogStateProperty: "",
+			disable_console: false,
+			disable_webserver: false,
+			storage: undefined,
+			webhook_uri: "",
+			webserver: undefined,
+			webserver_middlewares: [],
+			adapter: adapter});
 
-		this.bot = this.controller.spawn(
+		async this.controller.spawn(
 			{
 				token: this.token
 			}
-		);
-		this.controller.on('rtm_close', function () {
-			console.log("RTM closed");
-			_this.shutDown().then(function () {
-				process.exit(0);
-			});
-		});
+		).then((bot => {
+			this.bot = bot;
+		}));
 		this._startRTM();
 	}
 
 	private _startRTM() {
 		let _this = this;
-		this.bot.startRTM(function (err) {
-			if (err) {
-				console.log('Failed to start RTM');
-				return setTimeout(_this._startRTM, 60000);
-			}
-			console.log("RTM started!");
-		});
 	}
 
 	public run(): void {
@@ -66,20 +81,11 @@ export default class Gurubot {
 
 		this._initBots();
 
-		this.controller.on('hello', (bot) => {
-			bot.api.users.list({}, (err, data) => {
-				_this.users = data.members;
-			});
-			bot.api.channels.list({}, (err, data) => {
-				_this.channels = data.channels;
-			});
-		});
-
-		this.controller.hears('\\+commands', 'ambient', (bot, message) => {
+		this.controller.hears('\\+commands', 'ambient', async (bot, message) => {
 			bot.reply(message, 'Commands: (+) ' + _this.commands);
 		});
 
-		this.controller.hears('', 'ambient', (bot, message) => {
+		this.controller.hears('', 'ambient', async (bot, message) => {
 			this.activeBots.forEach((activeBot) => {
 				activeBot.handleWildcardMessage(message);
 			});

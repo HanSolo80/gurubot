@@ -15,7 +15,7 @@ export default class ChuckBot implements Bot {
 
     constructor(gurubot: Gurubot) {
         this.entities = new Entities();
-        gurubot.controller.hears('\\+chuck', 'ambient', (bot, message) => {
+        gurubot.controller.hears('\\+chuck', 'ambient', async (bot, message) => {
             Helpers.getJSONFromUrl(nconf.get('norrisapi_url')).then((fact) => {
                 bot.reply(message, this.entities.decode(fact.value.joke));
             });

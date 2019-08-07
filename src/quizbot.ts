@@ -20,7 +20,7 @@ export default class Quizbot implements Bot {
 	constructor(gurubot: Gurubot) {
 		let _this = this;
 		this.gurubot = gurubot;
-		this.gurubot.controller.hears('^\\+quiz\\s*(\\d*)\\s*(\\w*)\\s*$', 'ambient', (bot, message) => {
+		this.gurubot.controller.hears('^\\+quiz\\s*(\\d*)\\s*(\\w*)\\s*$', 'ambient', async (bot, message) => {
 			if (!_this.gurubot.isCommandAllowed('quiz', message)) {
 				bot.reply(message, '*Quiz not allowed in channel!*');
 				return;
@@ -54,7 +54,7 @@ export default class Quizbot implements Bot {
 			}
 		});
 
-		this.gurubot.controller.hears('\\+endquiz', 'ambient', (bot, message) => {
+		this.gurubot.controller.hears('\\+endquiz', 'ambient', async (bot, message) => {
 			if (!this.gurubot.isCommandAllowed('quiz', message)) {
 				return;
 			}
@@ -67,7 +67,7 @@ export default class Quizbot implements Bot {
 			}
 		});
 
-		this.gurubot.controller.hears('\\+scorequiz', 'ambient', (bot, message) => {
+		this.gurubot.controller.hears('\\+scorequiz', 'ambient', async (bot, message) => {
 			if (!this.gurubot.isCommandAllowed('quiz', message)) {
 				return;
 			}
