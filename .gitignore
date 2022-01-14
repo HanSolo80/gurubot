@@ -4,6 +4,7 @@
 /.settings
 /.project
 .env
+.env*
 logs
 *.log
 npm-debug.log*

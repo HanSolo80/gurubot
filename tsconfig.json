@@ -1,17 +1,18 @@
 {
   "compilerOptions": {
-    "allowJs": true,
-    "outDir": "dist",
-    "rootDir": "src",
-    "module": "commonjs",
     "target": "es6",
-    "sourceMap": true
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "allowJs": true,
+    "sourceMap": true,
+    "rootDir": "src",
+    "outDir": "dist"
   },
-  "exclude": [
-    "node_modules",
-    "dist",
-    "grunt",
-    "test",
-    "Gruntfile.js"
+  "include": [
+    "src/**/*"
   ]
 }

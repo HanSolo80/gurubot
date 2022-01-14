@@ -32,22 +32,6 @@ export interface Member {
     tz_offset: number;
 }
 
-export interface Channel {
-    created: number;
-    creator: string;
-    id: string;
-    is_archived: boolean;
-    is_channel: boolean;
-    is_general: boolean;
-    is_member: boolean;
-    members: String[];
-    name: string;
-    num_members: number
-    previous_names: String[];
-    purpose: Object;
-    topic: Object;
-}
-
 export interface Answer {
     name: string;
     answer: string;

@@ -1,32 +1,25 @@
-'use strict'
+import fetch from 'node-fetch';
+import Bot from './bot';
+import {Helpers} from './utils/helpers';
+import Gurubot from './gurubot';
 
 let nconf = require('nconf');
 let sprintf = require('sprintf-js').sprintf;
-let request = require("request");
-
-import Bot from './bot';
-import Gurubot from './gurubot';
 
 export default class BoobBot implements Bot {
 
-    gurubot: Gurubot;
-
     constructor(gurubot: Gurubot) {
-        let _this = this;
-        this.gurubot = gurubot;
-        gurubot.controller.hears('\\+boob', 'ambient', (bot, message) => {
-            if (!_this.gurubot.isCommandAllowed('boob', message)) {
-				return;
-			}
-            let boobsUrl = sprintf(nconf.get('boob_url'), this._randomInt(5000));
-            request.get(boobsUrl, function (err, response) {
-
-                let payload = {
-                    text: "http://media.oboobs.ru/" + JSON.parse(response.body)[0].preview
-                };
-
-                bot.reply(message, payload.text.replace('_preview', ''));
-            });
+        gurubot.app.message('+boob', async ({ message, say }) => {
+            if(!gurubot.isCommandAllowed('boob', message)) {
+                return;
+            }
+            const boobsUrl = sprintf(nconf.get('boob_url'), Helpers.randomInt(5000));
+            const response = await fetch(boobsUrl);
+            const boob = await response.text();
+            const payload = {
+                text: "http://media.oboobs.ru/" + JSON.parse(boob)[0].preview
+            };
+            await say(payload.text.replace('_preview', ''));
         });
     }
 
@@ -42,11 +35,7 @@ export default class BoobBot implements Bot {
 
     }
 
-    public getCommands(): String[] {
+    public getCommands(): string[] {
         return ['boob'];
-    }
-
-    private _randomInt(high) {
-        return Math.floor(Math.random() * high);
     }
 }

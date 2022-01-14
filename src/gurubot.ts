@@ -1,108 +1,75 @@
-'use strict';
+import {App, KnownEventFromType, LogLevel} from '@slack/bolt';
+import {Channel} from '@slack/web-api/dist/response/ChannelsListResponse';
+
+import Bot from './bot';
+import ChuckBot from './bots/chuckbot';
+import {Member} from './externals';
+import BoobBot from './boobbot';
 
 let nconf = require('nconf');
-let Botkit = require('botkit');
-let assert = require('assert');
-import Bot from './bot';
-import Quizbot from './quizbot';
-import ChuckBot from './chuckbot';
-import BoobBot from './boobbot';
-import { Member, Channel } from './externals';
 
 export default class Gurubot {
 
-	controller: any;
-	bot: any;
+	app: App;
 	users: Member[];
-	channels: Channel[];
-	token: string;
+	channels:  Channel[] | undefined;
 	activeBots: Bot[];
-	commands: String[];
+	commands: string[];
 
-	/**
-	 * @param {String} slackToken
-	 */
-	constructor(slackToken) {
-		assert(slackToken, 'Slack Token is necessary obtain it at https://my.slack.com/services/new/bot and copy in configBot.json');
+
+	constructor() {
 		let _this = this;
+		this.users = [];
+		this.channels = [];
 		this.activeBots = [];
 		this.commands = [];
-		this.token = slackToken;
-		this.controller = Botkit.slackbot({
-			debug: false
-		});
 
-		this.bot = this.controller.spawn(
-			{
-				token: this.token
-			}
-		);
-		this.controller.on('rtm_close', function () {
-			console.log("RTM closed");
-			_this.shutDown().then(function () {
-				process.exit(0);
-			});
-		});
-		this._startRTM();
-	}
-
-	private _startRTM() {
-		let _this = this;
-		this.bot.startRTM(function (err) {
-			if (err) {
-				console.log('Failed to start RTM');
-				return setTimeout(_this._startRTM, 60000);
-			}
-			console.log("RTM started!");
+		this.app = new App({
+			token: process.env.SLACK_BOT_TOKEN,
+			signingSecret: process.env.SLACK_SIGNING_SECRET,
+			appToken: process.env.SLACK_APP_TOKEN,
+			logLevel: LogLevel.ERROR,
+			socketMode: true,
 		});
 	}
 
-	public run(): void {
+	public async run(): Promise<any> {
 		let _this = this;
 
-		this.activeBots.push(new Quizbot(this));
 		this.activeBots.push(new ChuckBot(this));
 		this.activeBots.push(new BoobBot(this));
-
 		this._initBots();
 
-		this.controller.on('hello', (bot) => {
-			bot.api.users.list({}, (err, data) => {
-				_this.users = data.members;
-			});
-			bot.api.channels.list({}, (err, data) => {
-				_this.channels = data.channels;
-			});
+		this.app.message('+commands', async ({ message, say }) => {
+			// say() sends a message to the channel where the event was triggered
+			console.log(message);
+			await say('Commands: (+) ' + this.commands.filter(x => this.isCommandAllowed(x, message)));
 		});
 
-		this.controller.hears('\\+commands', 'ambient', (bot, message) => {
-			bot.reply(message, 'Commands: (+) ' + _this.commands);
-		});
+		await this.app.start(Number(process.env.PORT) || 3000);
 
-		this.controller.hears('', 'ambient', (bot, message) => {
-			this.activeBots.forEach((activeBot) => {
-				activeBot.handleWildcardMessage(message);
-			});
-		});
+		const conversations = await this.app.client.conversations.list();
+		this.channels = conversations.channels;
+
+		console.log('⚡️ Bolt app is running!');
 
 	}
 
-	public shutDown(): Promise<any> {
+	public async shutDown(): Promise<any> {
 		let _this = this;
-		return new Promise(function (resolve: Function) {
-			_this._stopBots();
-			resolve();
-		});
+		return _this._stopBots();
 	}
 
-	public isCommandAllowed(command: string, message: any): boolean {
+	public isCommandAllowed(command: string, message:  KnownEventFromType<"message">): boolean {
 		try {
-			let channelId = message.channel;
-			let channelName = this.channels.find(x => x.id === channelId).name;
-			return nconf.get('allowed_channels')[command].indexOf(channelName) !== -1;
+			const channelId = message.channel;
+			const channelName = this.channels?.find(x => x.id === channelId)?.name;
+			const allowedChannels = nconf.get('allowed_channels')[command];
+			return allowedChannels?.indexOf(channelName) !== -1;
 		} catch (e) {
-
+			console.error(e);
 		}
+		return false;
 	}
 
 	private _stopBots(): void {

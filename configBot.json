@@ -2,6 +2,8 @@
   "boob_url" : "http://api.oboobs.ru/boobs/%d/1/rank",
   "norrisapi_url": "http://api.icndb.com/jokes/random/",
   "question_url": "https://www.opentdb.com/api.php?amount=%d&difficulty=%s&type=multiple",
+  "dburi": "mysql://trivia:triviadb@localhost:3306/trivia",
+  "socketpath": "/var/run/mysqld/mysqld.sock",
   "question_timeout": 15000,
   "allowed_channels": {
     "quiz": [
